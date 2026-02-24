@@ -3,116 +3,259 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Map Editor – Add Level / Region</title>
+  <title>Hawaii Map Editor – Add Levels & Objects</title>
   <style>
-    body { font-family: Arial, sans-serif; max-width: 540px; margin: 20px auto; padding: 20px; background: #f8f9fa; }
-    h1 { text-align: center; }
-    label { display: block; margin: 12px 0 4px; font-weight: bold; }
-    input, textarea { width: 100%; padding: 8px; box-sizing: border-box; }
-    button { margin-top: 20px; padding: 12px; background: #28a745; color: white; border: none; border-radius: 6px; font-size: 1.1rem; cursor: pointer; width: 100%; }
-    button:hover { background: #218838; }
-    .note { color: #666; font-size: 0.9rem; margin-top: 4px; }
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      max-width: 640px;
+      margin: 30px auto;
+      padding: 20px;
+      background: #f9fbfc;
+      color: #333;
+      line-height: 1.5;
+    }
+    h1 {
+      text-align: center;
+      color: #1a5276;
+    }
+    fieldset {
+      margin-bottom: 24px;
+      padding: 16px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background: white;
+    }
+    legend {
+      font-weight: bold;
+      color: #1a5276;
+      padding: 0 8px;
+    }
+    label {
+      display: block;
+      margin: 16px 0 6px;
+      font-weight: 600;
+    }
+    input[type="text"],
+    input[type="number"],
+    textarea,
+    select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #bbb;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+    small, .helper {
+      display: block;
+      margin-top: 4px;
+      color: #555;
+      font-size: 0.9rem;
+    }
+    button {
+      width: 100%;
+      padding: 14px;
+      background: #27ae60;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+    button:hover {
+      background: #219653;
+    }
+    #successMessage {
+      display: none;
+      margin-top: 30px;
+      padding: 16px;
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+      border-radius: 8px;
+      text-align: center;
+    }
+    #imagePreview img,
+    #localPreview {
+      max-width: 240px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      margin-top: 10px;
+    }
+    #suggestedPath {
+      font-family: monospace;
+      color: #0066cc;
+      margin-top: 8px;
+    }
   </style>
 </head>
 <body>
-  <h1>Add New Map Level or Region</h1>
-  <form id="mapForm" action="YOUR_APPS_SCRIPT_EXEC_URL" method="POST">
-  <fieldset>
-    <legend>Basic Info</legend>
-    
-    <label for="level">Map Level (0 = main island, 1 = gulf, etc.):</label>
-    <input type="number" id="level" name="level" min="0" required placeholder="e.g. 4" />
 
-    <label for="imageUrl">Image Path (upload to GitHub first):</label>
-    <input type="text" id="imageUrl" name="imageUrl" required placeholder="images/volcano_interior.jpg" />
-    <small>Relative path — case sensitive!</small>
-    <div id="imagePreview" style="margin:10px 0;">
-      <img id="previewImg" style="max-width:200px; display:none;" alt="Preview" />
-    </div>
-  </fieldset>
-
-  <fieldset>
-    <legend>Zoom Region (optional – defines clickable area to next level)</legend>
-    
-    <label for="points">Polygon Points (x1,y1 x2,y2 ...):</label>
-    <textarea id="points" name="points" rows="3" placeholder="e.g. 100,200 300,150 450,300 200,500"></textarea>
-    <small>Tip: Use an online tool like https://www.image-map.net/ — open your image, click points, copy the coords</small>
-
-    <label for="nextLevel">Zooms to Level:</label>
-    <input type="number" id="nextLevel" name="nextLevel" min="0" placeholder="e.g. 5" />
-  </fieldset>
-
-  <fieldset>
-    <legend>Interactive Object / Marker (optional)</legend>
-    
-    <label for="objType">Type:</label>
-    <select id="objType" name="objectType">
-      <option value="">None</option>
-      <option value="marker">Simple Marker (gold circle)</option>
-      <option value="icon">Image Icon</option>
-      <option value="npc">NPC / Character</option>
-      <option value="collectible">Collectible Item</option>
-    </select>
-
-    <div id="objFields" style="display:none;">
-      <label for="objPoints">Position (x,y):</label>
-      <input type="text" id="objPoints" name="objectPoints" placeholder="e.g. 320,480" />
-
-      <label for="objName">Name:</label>
-      <input type="text" id="objName" name="objName" placeholder="Treasure Chest" />
-
-      <label for="objDesc">Description / Dialog:</label>
-      <textarea id="objDesc" name="objDesc" rows="2"></textarea>
-
-      <label for="objImage">Image Path (for icons/NPCs):</label>
-      <input type="text" id="objImage" name="objImage" placeholder="images/icons/chest.png" />
-    </div>
-  </fieldset>
-
-  <button type="submit">Save → Add to Sheet</button>
-</form>
-
-  <p style="text-align:center; margin-top:30px;">
-    <a href="https://guerillagardeningkzn-design.github.io/hawaii/">← Back to Map Viewer</a>
+  <h1>Hawaii Map Editor</h1>
+  <p style="text-align:center; margin-bottom:32px;">
+    Add zoom levels, regions & interactive objects → saved to Google Sheet
   </p>
 
-  <!-- Optional: simple success message if you want to stay on page -->
+  <form id="mapForm" action="YOUR_APPS_SCRIPT_EXEC_URL_HERE" method="POST">
+    
+    <!-- ──────────────────────────────────────────────── -->
+    <!--                  BASIC MAP INFO                  -->
+    <!-- ──────────────────────────────────────────────── -->
+    <fieldset>
+      <legend>Map / Level Information</legend>
+
+      <label for="level">Level number</label>
+      <input type="number" id="level" name="level" min="0" required placeholder="0 = main island, 1 = gulf coast, etc." />
+      <small>Required – must be a whole number</small>
+
+      <label for="imageUrl">GitHub Image Path</label>
+      <input type="text" id="imageUrl" name="imageUrl" required placeholder="images/volcano_interior.jpg" />
+      <small>Required – upload image to GitHub repo first (case-sensitive)</small>
+
+      <!-- Image upload helper + preview -->
+      <label for="mapImageFile">Select local image to preview & get path suggestion</label>
+      <input type="file" id="mapImageFile" accept="image/*" />
+      <div id="filePreview">
+        <img id="localPreview" style="display:none;" alt="Local image preview" />
+        <p id="suggestedPath"></p>
+      </div>
+    </fieldset>
+
+    <!-- ──────────────────────────────────────────────── -->
+    <!--                  ZOOM REGION                     -->
+    <!-- ──────────────────────────────────────────────── -->
+    <fieldset>
+      <legend>Zoom Region (optional – clickable area to next level)</legend>
+
+      <label for="points">Polygon points (x1,y1 x2,y2 ...)</label>
+      <textarea id="points" name="points" rows="3" placeholder="e.g. 120,340 450,200 300,600 180,520"></textarea>
+      <small>
+        Tip: Use <a href="https://www.image-map.net/" target="_blank">image-map.net</a> — open your image, click points clockwise, copy coords
+      </small>
+
+      <label for="nextLevel">This region zooms to level</label>
+      <input type="number" id="nextLevel" name="nextLevel" min="0" placeholder="e.g. 4" />
+      <small>Leave blank if this is not a zoom trigger</small>
+    </fieldset>
+
+    <!-- ──────────────────────────────────────────────── -->
+    <!--                  INTERACTIVE OBJECT              -->
+    <!-- ──────────────────────────────────────────────── -->
+    <fieldset>
+      <legend>Interactive Object / Marker (optional)</legend>
+
+      <label for="objectType">Object type</label>
+      <select id="objectType" name="objectType">
+        <option value="">— None —</option>
+        <option value="marker">Marker (gold circle)</option>
+        <option value="icon">Image icon / symbol</option>
+        <option value="npc">NPC / character</option>
+        <option value="collectible">Collectible item</option>
+      </select>
+
+      <div id="objectFields" style="display:none; margin-top:16px;">
+        <label for="objectPoints">Position (x,y)</label>
+        <input type="text" id="objectPoints" name="objectPoints" placeholder="e.g. 320,480" />
+
+        <label for="objName">Name</label>
+        <input type="text" id="objName" name="objName" placeholder="Treasure Chest" />
+
+        <label for="objDesc">Description / Dialog</label>
+        <textarea id="objDesc" name="objDesc" rows="2" placeholder="A shiny chest full of secrets..."></textarea>
+
+        <label for="objImage">Image path (for icons & NPCs)</label>
+        <input type="text" id="objImage" name="objImage" placeholder="images/icons/chest.png" />
+      </div>
+    </fieldset>
+
+    <button type="submit">Save to Google Sheet</button>
+  </form>
+
+  <div id="successMessage">
+    <strong>Saved successfully!</strong><br>
+    <a href="index.html">Add another item</a> | 
+    <a href="https://guerillagardeningkzn-design.github.io/hawaii/" target="_blank">View live map</a> | 
+    <a href="YOUR_GOOGLE_SHEET_URL" target="_blank">Open Sheet</a>
+  </div>
+
+  <p style="text-align:center; margin-top:40px; font-size:0.9rem; color:#777;">
+    Editor for <a href="https://guerillagardeningkzn-design.github.io/hawaii/">Hawaii Zoomable Map</a>
+  </p>
+
   <script>
-// Auto-preview image path
-document.getElementById('imageUrl').addEventListener('input', function() {
-  const val = this.value.trim();
-  const preview = document.getElementById('previewImg');
-  if (val) {
-    preview.src = val;
-    preview.style.display = 'block';
-  } else {
-    preview.style.display = 'none';
-  }
-});
+    // ────────────────────────────────────────────────
+    //  Preview selected local image + suggest GitHub path
+    // ────────────────────────────────────────────────
+    document.getElementById('mapImageFile').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
 
-// Show/hide object fields
-document.getElementById('objType').addEventListener('change', function() {
-  document.getElementById('objFields').style.display = this.value ? 'block' : 'none';
-});
+      // Show local preview
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        const preview = document.getElementById('localPreview');
+        preview.src = ev.target.result;
+        preview.style.display = 'block';
+      };
+      reader.readAsDataURL(file);
 
-// Auto-build ObjectProperties JSON before submit
-document.getElementById('mapForm').addEventListener('submit', function(e) {
-  const type = document.getElementById('objType').value;
-  if (type) {
-    const props = {
-      name: document.getElementById('objName').value.trim(),
-      desc: document.getElementById('objDesc').value.trim(),
-      image: document.getElementById('objImage').value.trim() || undefined
-    };
-    // Clean empty values
-    Object.keys(props).forEach(k => !props[k] && delete props[k]);
-    const hiddenInput = document.createElement('input');
-    hiddenInput.type = 'hidden';
-    hiddenInput.name = 'objectProperties';
-    hiddenInput.value = JSON.stringify(props);
-    this.appendChild(hiddenInput);
-  }
-});
-</script>
+      // Suggest path for GitHub
+      const safeName = file.name.toLowerCase().replace(/\s+/g, '-');
+      const suggested = `images/${safeName}`;
+      document.getElementById('suggestedPath').innerHTML =
+        `Suggested GitHub path:<br><strong>${suggested}</strong><br>` +
+        `1. Upload this file to your repo → images/ folder<br>` +
+        `2. Copy the path above into the "GitHub Image Path" field<br>` +
+        `3. Submit the form`;
+    });
+
+    // ────────────────────────────────────────────────
+    //  Show/hide object fields when type is selected
+    // ────────────────────────────────────────────────
+    document.getElementById('objectType').addEventListener('change', function() {
+      document.getElementById('objectFields').style.display = 
+        this.value ? 'block' : 'none';
+    });
+
+    // ────────────────────────────────────────────────
+    //  Build ObjectProperties JSON before form submit
+    // ────────────────────────────────────────────────
+    document.getElementById('mapForm').addEventListener('submit', function(e) {
+      const type = document.getElementById('objectType').value;
+      if (!type) return; // no object → no JSON needed
+
+      const props = {
+        name:  document.getElementById('objName').value.trim()  || undefined,
+        desc:  document.getElementById('objDesc').value.trim()  || undefined,
+        image: document.getElementById('objImage').value.trim() || undefined
+      };
+
+      // Remove empty values
+      Object.keys(props).forEach(key => {
+        if (!props[key]) delete props[key];
+      });
+
+      // Add hidden input with JSON
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'objectProperties';
+      input.value = JSON.stringify(props);
+      this.appendChild(input);
+    });
+
+    // ────────────────────────────────────────────────
+    //  Show success message after redirect (if you add ?success)
+    // ────────────────────────────────────────────────
+    if (window.location.search.includes('success')) {
+      document.getElementById('successMessage').style.display = 'block';
+      // Optional: scroll to message
+      document.getElementById('successMessage').scrollIntoView({ behavior: 'smooth' });
+    }
+  </script>
+
 </body>
 </html>
