@@ -3,230 +3,305 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hawaii Map Editor – Add Levels & Objects</title>
+  <title>Hawaii Map Editor – Add Levels, Regions & Objects</title>
   <style>
     body {
       font-family: Arial, Helvetica, sans-serif;
-      max-width: 640px;
-      margin: 30px auto;
-      padding: 20px;
-      background: #f9fbfc;
+      max-width: 680px;
+      margin: 40px auto;
+      padding: 0 20px;
+      background: #f5f9fc;
       color: #333;
-      line-height: 1.5;
+      line-height: 1.6;
     }
     h1 {
       text-align: center;
-      color: #1a5276;
+      color: #0c4a6e;
+      margin-bottom: 12px;
+    }
+    .intro {
+      text-align: center;
+      color: #555;
+      margin-bottom: 32px;
     }
     fieldset {
-      margin-bottom: 24px;
-      padding: 16px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
+      margin-bottom: 32px;
+      padding: 20px;
+      border: 1px solid #d1d9e0;
+      border-radius: 10px;
       background: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     }
     legend {
       font-weight: bold;
-      color: #1a5276;
-      padding: 0 8px;
+      color: #0c4a6e;
+      padding: 0 12px;
+      font-size: 1.2rem;
     }
     label {
       display: block;
-      margin: 16px 0 6px;
+      margin: 18px 0 6px;
       font-weight: 600;
+      color: #1f2937;
     }
     input[type="text"],
     input[type="number"],
+    input[type="file"],
     textarea,
     select {
       width: 100%;
-      padding: 10px;
-      border: 1px solid #bbb;
+      padding: 10px 12px;
+      border: 1px solid #9ca3af;
       border-radius: 6px;
       font-size: 1rem;
     }
     textarea {
+      min-height: 90px;
       resize: vertical;
-      min-height: 80px;
     }
-    small, .helper {
+    .helper, small {
       display: block;
-      margin-top: 4px;
-      color: #555;
-      font-size: 0.9rem;
+      margin-top: 6px;
+      color: #4b5563;
+      font-size: 0.92rem;
+    }
+    .helper strong {
+      color: #1e40af;
+    }
+    .warning {
+      color: #b45309;
+      font-weight: 500;
+    }
+    .preview-container {
+      margin: 12px 0;
+      text-align: center;
+    }
+    .preview-container img {
+      max-width: 260px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
     }
     button {
       width: 100%;
       padding: 14px;
-      background: #27ae60;
+      background: #15803d;
       color: white;
       border: none;
       border-radius: 8px;
-      font-size: 1.1rem;
+      font-size: 1.15rem;
+      font-weight: bold;
       cursor: pointer;
-      margin-top: 20px;
+      margin-top: 24px;
     }
     button:hover {
-      background: #219653;
+      background: #166534;
     }
     #successMessage {
       display: none;
-      margin-top: 30px;
-      padding: 16px;
-      background: #d4edda;
-      color: #155724;
-      border: 1px solid #c3e6cb;
-      border-radius: 8px;
+      margin: 32px 0;
+      padding: 20px;
+      background: #ecfdf5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+      border-radius: 10px;
       text-align: center;
+      font-size: 1.1rem;
     }
-    #imagePreview img,
-    #localPreview {
-      max-width: 240px;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      margin-top: 10px;
-    }
-    #suggestedPath {
-      font-family: monospace;
-      color: #0066cc;
-      margin-top: 8px;
+    #successMessage a {
+      color: #047857;
+      font-weight: bold;
+      text-decoration: underline;
     }
   </style>
 </head>
 <body>
 
   <h1>Hawaii Map Editor</h1>
-  <p style="text-align:center; margin-bottom:32px;">
-    Add zoom levels, regions & interactive objects → saved to Google Sheet
+  <p class="intro">
+    Add new map levels, zoom regions and interactive objects.<br>
+    Everything is saved to your Google Sheet — changes appear in the live map after refresh.
   </p>
 
-  <form id="mapForm" action="YOUR_APPS_SCRIPT_EXEC_URL_HERE" method="POST">
-    
-    <!-- ──────────────────────────────────────────────── -->
-    <!--                  BASIC MAP INFO                  -->
-    <!-- ──────────────────────────────────────────────── -->
+  <form id="mapForm" action="AKfycbygjXQ023r358utfU_3UhVQDDN3vOWnahjY_Gs6mpubRbs5l-oZECpy7pt0lUPWpvLK" method="POST">
+
+    <!-- ============================================= -->
+    <!--          1. LEVEL & MAIN MAP IMAGE           -->
+    <!-- ============================================= -->
     <fieldset>
-      <legend>Map / Level Information</legend>
+      <legend>1. Level & Main Map Image</legend>
 
-      <label for="level">Level number</label>
-      <input type="number" id="level" name="level" min="0" required placeholder="0 = main island, 1 = gulf coast, etc." />
-      <small>Required – must be a whole number</small>
+      <label for="level">Level number <span style="color:#e11d48;">*</span></label>
+      <input type="number" id="level" name="level" min="0" required placeholder="Examples: 0 = main island, 4 = new sub-area" />
+      <small>Required — use whole numbers only (0,1,2,3...)</small>
 
-      <label for="imageUrl">GitHub Image Path</label>
-      <input type="text" id="imageUrl" name="imageUrl" required placeholder="images/volcano_interior.jpg" />
-      <small>Required – upload image to GitHub repo first (case-sensitive)</small>
+      <label for="imageUrl">GitHub image path <span style="color:#e11d48;">*</span></label>
+      <input type="text" id="imageUrl" name="imageUrl" required placeholder="images/volcano-peak.jpg" />
+      <small>Required — must match the exact path after you upload to GitHub</small>
 
-      <!-- Image upload helper + preview -->
-      <label for="mapImageFile">Select local image to preview & get path suggestion</label>
+      <label for="mapImageFile">Select local image file (for preview & path suggestion)</label>
       <input type="file" id="mapImageFile" accept="image/*" />
-      <div id="filePreview">
-        <img id="localPreview" style="display:none;" alt="Local image preview" />
-        <p id="suggestedPath"></p>
+      
+      <div class="preview-container">
+        <img id="mapPreview" style="display:none;" alt="Preview of selected map image" />
+      </div>
+      
+      <div class="helper">
+        <strong>How to add the image:</strong>
+        <ol style="margin:8px 0 0 20px; padding-left:0;">
+          <li>Select your image file above → see preview & suggested path</li>
+          <li>Go to your GitHub repo in another tab</li>
+          <li>Click "Add file" → "Upload files" → drag & drop the image</li>
+          <li>Put it in the <code>images/</code> folder (create if missing)</li>
+          <li>Commit → copy the suggested path into the field above</li>
+        </ol>
+        <p class="warning">GitHub paths are case-sensitive! Use lowercase and dashes (-), not spaces.</p>
       </div>
     </fieldset>
 
-    <!-- ──────────────────────────────────────────────── -->
-    <!--                  ZOOM REGION                     -->
-    <!-- ──────────────────────────────────────────────── -->
+    <!-- ============================================= -->
+    <!--               2. ZOOM REGION                 -->
+    <!-- ============================================= -->
     <fieldset>
-      <legend>Zoom Region (optional – clickable area to next level)</legend>
+      <legend>2. Zoom Region (optional)</legend>
+      <p class="helper">Define a clickable polygon area that zooms to another level when tapped/clicked.</p>
 
-      <label for="points">Polygon points (x1,y1 x2,y2 ...)</label>
-      <textarea id="points" name="points" rows="3" placeholder="e.g. 120,340 450,200 300,600 180,520"></textarea>
+      <label for="points">Polygon coordinates</label>
+      <textarea id="points" name="points" rows="4" placeholder="100,200 300,150 450,300 200,500 100,200"></textarea>
       <small>
-        Tip: Use <a href="https://www.image-map.net/" target="_blank">image-map.net</a> — open your image, click points clockwise, copy coords
+        Format: space-separated x,y pairs (clockwise or counterclockwise).<br>
+        <strong>Recommended tool:</strong> <a href="https://www.image-map.net/" target="_blank">image-map.net</a> →
+        upload your map image → click points → copy the coordinates
       </small>
 
-      <label for="nextLevel">This region zooms to level</label>
-      <input type="number" id="nextLevel" name="nextLevel" min="0" placeholder="e.g. 4" />
-      <small>Leave blank if this is not a zoom trigger</small>
+      <label for="nextLevel">Zooms to level</label>
+      <input type="number" id="nextLevel" name="nextLevel" min="0" placeholder="e.g. 5" />
+      <small>Leave empty if this is not a zoom trigger area</small>
     </fieldset>
 
-    <!-- ──────────────────────────────────────────────── -->
-    <!--                  INTERACTIVE OBJECT              -->
-    <!-- ──────────────────────────────────────────────── -->
+    <!-- ============================================= -->
+    <!--            3. INTERACTIVE OBJECT             -->
+    <!-- ============================================= -->
     <fieldset>
-      <legend>Interactive Object / Marker (optional)</legend>
+      <legend>3. Interactive Object / Marker (optional)</legend>
+      <p class="helper">Add something clickable on the map (marker, icon, NPC, item…)</p>
 
       <label for="objectType">Object type</label>
       <select id="objectType" name="objectType">
         <option value="">— None —</option>
-        <option value="marker">Marker (gold circle)</option>
+        <option value="marker">Simple marker (gold circle)</option>
         <option value="icon">Image icon / symbol</option>
         <option value="npc">NPC / character</option>
-        <option value="collectible">Collectible item</option>
+        <option value="collectible">Collectible / item</option>
       </select>
 
-      <div id="objectFields" style="display:none; margin-top:16px;">
-        <label for="objectPoints">Position (x,y)</label>
-        <input type="text" id="objectPoints" name="objectPoints" placeholder="e.g. 320,480" />
+      <div id="objectFields" style="display:none;">
 
-        <label for="objName">Name</label>
-        <input type="text" id="objName" name="objName" placeholder="Treasure Chest" />
+        <label for="objectPoints">Position (x,y) <span style="color:#e11d48;">*</span></label>
+        <input type="text" id="objectPoints" name="objectPoints" required placeholder="e.g. 340,520" />
+        <small>Single coordinate — center of the object/marker</small>
 
-        <label for="objDesc">Description / Dialog</label>
-        <textarea id="objDesc" name="objDesc" rows="2" placeholder="A shiny chest full of secrets..."></textarea>
+        <label for="objName">Name / Title</label>
+        <input type="text" id="objName" name="objName" placeholder="Ancient Lava Shrine" />
 
-        <label for="objImage">Image path (for icons & NPCs)</label>
-        <input type="text" id="objImage" name="objImage" placeholder="images/icons/chest.png" />
+        <label for="objDesc">Description / Dialog / Info</label>
+        <textarea id="objDesc" name="objDesc" rows="3" placeholder="A mysterious shrine that glows at night..."></textarea>
+
+        <label for="objImageFile">Select object image (icon/NPC/collectible)</label>
+        <input type="file" id="objImageFile" accept="image/*" />
+        
+        <div class="preview-container">
+          <img id="objPreview" style="display:none;" alt="Preview of selected object image" />
+        </div>
+
+        <div class="helper">
+          <strong>Object image steps:</strong>
+          <ol style="margin:8px 0 0 20px;">
+            <li>Select file above → see preview</li>
+            <li>Upload to GitHub → images/icons/ or images/npcs/ folder recommended</li>
+            <li>Copy suggested path into the next field</li>
+          </ol>
+        </div>
+
+        <label for="objImage">GitHub object image path</label>
+        <input type="text" id="objImage" name="objImage" placeholder="images/icons/shrine.png" />
       </div>
     </fieldset>
 
-    <button type="submit">Save to Google Sheet</button>
+    <button type="submit">Save to Google Sheet →</button>
   </form>
 
   <div id="successMessage">
-    <strong>Saved successfully!</strong><br>
-    <a href="index.html">Add another item</a> | 
-    <a href="https://guerillagardeningkzn-design.github.io/hawaii/" target="_blank">View live map</a> | 
-    <a href="YOUR_GOOGLE_SHEET_URL" target="_blank">Open Sheet</a>
+    <strong>✓ Successfully saved!</strong><br><br>
+    <a href="index.html">Add another entry</a>  • 
+    <a href="https://guerillagardeningkzn-design.github.io/hawaii/" target="_blank">View the live map</a>  • 
+    <a href="https://docs.google.com/spreadsheets/d/12o0xFSmWEAXMq1My0IFTA5c9OraPCRydjNei6QhYFYQ/edit?usp=sharing" target="_blank">Open Google Sheet</a>
   </div>
-
-  <p style="text-align:center; margin-top:40px; font-size:0.9rem; color:#777;">
-    Editor for <a href="https://guerillagardeningkzn-design.github.io/hawaii/">Hawaii Zoomable Map</a>
-  </p>
 
   <script>
     // ────────────────────────────────────────────────
-    //  Preview selected local image + suggest GitHub path
+    //   MAIN MAP IMAGE PREVIEW + PATH SUGGESTION
     // ────────────────────────────────────────────────
     document.getElementById('mapImageFile').addEventListener('change', function(e) {
       const file = e.target.files[0];
       if (!file) return;
 
-      // Show local preview
       const reader = new FileReader();
       reader.onload = function(ev) {
-        const preview = document.getElementById('localPreview');
-        preview.src = ev.target.result;
-        preview.style.display = 'block';
+        const img = document.getElementById('mapPreview');
+        img.src = ev.target.result;
+        img.style.display = 'block';
       };
       reader.readAsDataURL(file);
 
-      // Suggest path for GitHub
-      const safeName = file.name.toLowerCase().replace(/\s+/g, '-');
-      const suggested = `images/${safeName}`;
-      document.getElementById('suggestedPath').innerHTML =
-        `Suggested GitHub path:<br><strong>${suggested}</strong><br>` +
-        `1. Upload this file to your repo → images/ folder<br>` +
-        `2. Copy the path above into the "GitHub Image Path" field<br>` +
-        `3. Submit the form`;
+      suggestPath(file.name, 'suggestedMapPath'); // We'll add this function below
     });
 
     // ────────────────────────────────────────────────
-    //  Show/hide object fields when type is selected
+    //   OBJECT IMAGE PREVIEW + PATH SUGGESTION
+    // ────────────────────────────────────────────────
+    document.getElementById('objImageFile').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        const img = document.getElementById('objPreview');
+        img.src = ev.target.result;
+        img.style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+
+      suggestPath(file.name, 'suggestedObjPath');
+    });
+
+    // Shared helper to show path suggestion
+    function suggestPath(filename, targetElementId) {
+      const safeName = filename.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9.-]/g, '');
+      const path = `images/${safeName}`;
+      const msg = document.createElement('p');
+      msg.innerHTML = `<strong>Suggested path:</strong> ${path}<br>
+        <span style="color:#444;">→ Upload this file to GitHub now (images/ folder)<br>
+        → Then copy this path into the corresponding field</span>`;
+      const container = document.getElementById(targetElementId) || document.createElement('div');
+      container.innerHTML = '';
+      container.appendChild(msg);
+      // If you want separate containers, create them in HTML
+    }
+
+    // ────────────────────────────────────────────────
+    //   SHOW/HIDE OBJECT SECTION
     // ────────────────────────────────────────────────
     document.getElementById('objectType').addEventListener('change', function() {
-      document.getElementById('objectFields').style.display = 
-        this.value ? 'block' : 'none';
+      document.getElementById('objectFields').style.display = this.value ? 'block' : 'none';
     });
 
     // ────────────────────────────────────────────────
-    //  Build ObjectProperties JSON before form submit
+    //   BUILD OBJECT PROPERTIES JSON BEFORE SUBMIT
     // ────────────────────────────────────────────────
     document.getElementById('mapForm').addEventListener('submit', function(e) {
       const type = document.getElementById('objectType').value;
-      if (!type) return; // no object → no JSON needed
+      if (!type) return;
 
       const props = {
         name:  document.getElementById('objName').value.trim()  || undefined,
@@ -234,12 +309,8 @@
         image: document.getElementById('objImage').value.trim() || undefined
       };
 
-      // Remove empty values
-      Object.keys(props).forEach(key => {
-        if (!props[key]) delete props[key];
-      });
+      Object.keys(props).forEach(k => !props[k] && delete props[k]);
 
-      // Add hidden input with JSON
       const input = document.createElement('input');
       input.type = 'hidden';
       input.name = 'objectProperties';
@@ -248,12 +319,10 @@
     });
 
     // ────────────────────────────────────────────────
-    //  Show success message after redirect (if you add ?success)
+    //   SHOW SUCCESS MESSAGE AFTER REDIRECT
     // ────────────────────────────────────────────────
     if (window.location.search.includes('success')) {
       document.getElementById('successMessage').style.display = 'block';
-      // Optional: scroll to message
-      document.getElementById('successMessage').scrollIntoView({ behavior: 'smooth' });
     }
   </script>
 
