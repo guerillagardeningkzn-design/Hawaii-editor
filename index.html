@@ -136,8 +136,10 @@
       <small>Required — use whole numbers only (0,1,2,3...)</small>
 
       <label for="imageUrl">GitHub image path <span style="color:#e11d48;">*</span></label>
-      <input type="text" id="imageUrl" name="imageUrl" required placeholder="images/volcano-peak.jpg" />
-      <small>Required — must match the exact path after you upload to GitHub</small>
+      <input type="text" id="imageUrl" name="imageUrl" placeholder="images/volcano-peak.jpg (optional if only adding objects)" />
+<!-- Remove the required attribute -->
+<!-- Optional: add a note below -->
+<small>This field is only required when creating a new level or changing the background image. Leave empty when adding objects/markers to an existing level.</small>
 
       <label for="mapImageFile">Select local image file (for preview & path suggestion)</label>
       <input type="file" id="mapImageFile" accept="image/*" />
