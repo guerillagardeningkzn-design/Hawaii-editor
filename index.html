@@ -276,9 +276,9 @@
       isDrawingPolygon = true;
       points = [];
       ctx.clearRect(0, 0, mapCanvas.width, mapCanvas.height);
-      document.getElementById('coordsOutput').value = '';
+      document.getElementById('points').value = '';
       document.getElementById('acceptPolygonBtn').disabled = false;
-      alert('Click points on preview. Click "Accept Points" when done.');
+      alert('Click points on preview to define zoom area. Click "Accept Points" when done.');
     });
 
     mapCanvas.addEventListener('click', function(e) {
@@ -304,8 +304,6 @@
         ctx.lineWidth = 2;
         ctx.stroke();
       }
-
-      updateCoordsDisplay();
     });
 
     document.getElementById('acceptPolygonBtn').addEventListener('click', () => {
@@ -314,7 +312,7 @@
         return;
       }
 
-      // Close polygon
+      // Close polygon (last to first)
       ctx.beginPath();
       ctx.moveTo(points[points.length - 1].x, points[points.length - 1].y);
       ctx.lineTo(points[0].x, points[0].y);
@@ -324,29 +322,28 @@
 
       isDrawingPolygon = false;
       document.getElementById('acceptPolygonBtn').disabled = true;
-      updateCoordsDisplay();
-    });
 
-    function updateCoordsDisplay() {
-      const coords = points.map(p => `${Math.round(p.x)},${Math.round(p.y)}`).join(' ');
-      document.getElementById('coordsOutput').value = coords;
-    }
+      // Generate coordinates scaled to full map size (600×800)
+      const fullWidth = 600;
+      const fullHeight = 800;
+      const scaleX = fullWidth / mapCanvas.width;
+      const scaleY = fullHeight / mapCanvas.height;
+
+      const scaledPoints = points.map(p => ({
+        x: Math.round(p.x * scaleX),
+        y: Math.round(p.y * scaleY)
+      }));
+
+      const coords = scaledPoints.map(p => `${p.x},${p.y}`).join(' ');
+      document.getElementById('points').value = coords;
+    });
 
     document.getElementById('clearBtn').addEventListener('click', () => {
       points = [];
       isDrawingPolygon = false;
       ctx.clearRect(0, 0, mapCanvas.width, mapCanvas.height);
-      document.getElementById('coordsOutput').value = '';
+      document.getElementById('points').value = '';
       document.getElementById('acceptPolygonBtn').disabled = true;
-    });
-
-    document.getElementById('copyBtn').addEventListener('click', () => {
-      const text = document.getElementById('coordsOutput').value;
-      if (text) {
-        navigator.clipboard.writeText(text).then(() => {
-          alert('Coordinates copied! Paste into "Polygon coordinates" field.');
-        });
-      }
     });
 
     // =============================================
