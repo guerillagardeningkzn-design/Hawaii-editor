@@ -354,45 +354,24 @@
     });
 
     // =============================================
-    // SEND GOLD CIRCLE (marker) AS PLAIN TEXT FIELDS
+    // BUILD OBJECT PROPERTIES JSON BEFORE SUBMIT
     // =============================================
     document.getElementById('mapForm').addEventListener('submit', function(e) {
       const type = document.getElementById('objectType').value;
+      if (!type) return;
 
-      if (type === 'marker') {
-        // For gold circle → send flat fields instead of JSON
-        const props = {
-          name: document.getElementById('objName').value.trim(),
-          desc: document.getElementById('objDesc').value.trim(),
-          image: document.getElementById('objImage').value.trim()
-        };
+      const props = {
+        name: document.getElementById('objName').value.trim() || undefined,
+        desc: document.getElementById('objDesc').value.trim() || undefined,
+        image: document.getElementById('objImage').value.trim() || undefined
+      };
+      Object.keys(props).forEach(k => !props[k] && delete props[k]);
 
-        // Add them as separate form fields
-        Object.entries(props).forEach(([key, value]) => {
-          if (value) {
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = `marker_${key}`;   // → marker_name, marker_desc, marker_image
-            input.value = value;
-            this.appendChild(input);
-          }
-        });
-      }
-      else if (type) {
-        // Keep original JSON behaviour for other types
-        const props = {
-          name: document.getElementById('objName').value.trim() || undefined,
-          desc: document.getElementById('objDesc').value.trim() || undefined,
-          image: document.getElementById('objImage').value.trim() || undefined
-        };
-        Object.keys(props).forEach(k => !props[k] && delete props[k]);
-
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = 'objectProperties';
-        input.value = JSON.stringify(props);
-        this.appendChild(input);
-      }
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'objectProperties';
+      input.value = JSON.stringify(props);
+      this.appendChild(input);
     });
 
     // =============================================
@@ -401,7 +380,7 @@
     if (window.location.search.includes('success')) {
       document.getElementById('successMessage').style.display = 'block';
     }
-  </script>
+</script>
 
 </body>
 </html>
