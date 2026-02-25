@@ -3,333 +3,160 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hawaii Map Editor – Shape & Coord Picker</title>
+  <title>Hawaii Map Editor – Send Data to Sheet</title>
   <style>
-    body { font-family: Arial, sans-serif; max-width: 720px; margin: 30px auto; padding: 20px; background: #f8f9fa; }
-    h1 { text-align: center; color: #1a5276; }
-    fieldset { margin: 20px 0; padding: 20px; border: 1px solid #ccc; border-radius: 8px; background: white; }
-    legend { font-weight: bold; color: #1a5276; padding: 0 10px; }
-    label { display: block; margin: 12px 0 6px; font-weight: 600; }
-    input, select, textarea { width: 100%; padding: 10px; border: 1px solid #bbb; border-radius: 6px; box-sizing: border-box; }
-    button { padding: 10px 20px; margin: 10px 5px 0 0; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; }
-    button:hover { background: #218838; }
-    .mode-btn { background: #6c757d; } /* Default gray */
-    .mode-btn.active { background: #007bff; color: white; }
-    #previewContainer { position: relative; margin: 20px 0; border: 2px solid #ddd; display: inline-block; background: #eee; cursor: crosshair; }
-    #mapImg { display: block; max-width: 100%; height: auto; }
-    #mapCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-    #coordsOutput { width: 100%; height: 80px; margin-top: 10px; font-family: monospace; resize: vertical; }
-    .helper { color: #555; font-size: 0.95rem; margin-top: 6px; }
-    #successMessage { display: none; margin: 32px 0; padding: 20px; background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; border-radius: 10px; text-align: center; }
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 720px;
+      margin: 30px auto;
+      padding: 20px;
+      background: #f8f9fa;
+      color: #333;
+      line-height: 1.6;
+    }
+    h1 {
+      text-align: center;
+      color: #1a5276;
+      margin-bottom: 12px;
+    }
+    .intro {
+      text-align: center;
+      color: #555;
+      margin-bottom: 32px;
+    }
+    fieldset {
+      margin-bottom: 32px;
+      padding: 20px;
+      border: 1px solid #d1d9e0;
+      border-radius: 10px;
+      background: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    legend {
+      font-weight: bold;
+      color: #1a5276;
+      padding: 0 12px;
+      font-size: 1.2rem;
+    }
+    label {
+      display: block;
+      margin: 18px 0 6px;
+      font-weight: 600;
+      color: #1f2937;
+    }
+    input[type="text"],
+    input[type="number"],
+    textarea,
+    select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #9ca3af;
+      border-radius: 6px;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+    textarea {
+      min-height: 90px;
+      resize: vertical;
+    }
+    .helper, small {
+      display: block;
+      margin-top: 6px;
+      color: #4b5563;
+      font-size: 0.92rem;
+    }
+    .helper strong {
+      color: #1e40af;
+    }
+    .warning {
+      color: #b45309;
+      font-weight: 500;
+    }
+    button {
+      width: 100%;
+      padding: 14px;
+      background: #15803d;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.15rem;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 24px;
+    }
+    button:hover {
+      background: #166534;
+    }
   </style>
 </head>
 <body>
 
   <h1>Hawaii Map Editor</h1>
-
-  <fieldset>
-    <legend>Load Map Preview</legend>
-    <label for="imageUrl">GitHub Image Path (full repo URL if needed)</label>
-    <input type="text" id="imageUrl" placeholder="images/volcano_peak.jpg" />
-
-    <label for="mapImageFile">Or select local file</label>
-    <input type="file" id="mapImageFile" accept="image/*" />
-
-    <div id="previewContainer">
-      <img id="mapImg" alt="Map preview" style="display:none;">
-      <canvas id="mapCanvas" style="display:none;"></canvas>
-    </div>
-  </fieldset>
-
-  <fieldset>
-    <legend>Draw Zoom / Touch Area</legend>
-    <div style="margin-bottom: 16px;">
-      <button type="button" class="mode-btn active" data-mode="rectangle">Rectangle</button>
-      <button type="button" class="mode-btn" data-mode="polygon">Polygon</button>
-      <button type="button" class="mode-btn" data-mode="circle">Circle</button>
-      <button type="button" id="clearBtn">Clear</button>
-      <button type="button" id="copyBtn">Copy Coordinates</button>
-    </div>
-
-    <textarea id="coordsOutput" readonly placeholder="Coordinates will appear here..."></textarea>
-    <div class="helper">
-      • Click or tap to start<br>
-      • Rectangle/Circle: click and drag<br>
-      • Polygon: click multiple points, double-click or press Enter to finish<br>
-      • Copy → paste into "Polygon coordinates" below
-    </div>
-  </fieldset>
+  <p class="intro">
+    Send data to your Google Sheet in the required format for the Hawaii game.<br>
+    Fill only the fields you need — empty fields are OK for most cases.
+  </p>
 
   <form id="mapForm" action="https://script.google.com/macros/s/AKfycbzK4d2__PMlMrJKjV_U1IqnauUFar1YCdVrPaFfmGbqHNFyOep-BppaNLUVKSdRqy0/exec" method="POST">
+
     <!-- Level & Map Image -->
     <fieldset>
       <legend>Level & Map Image</legend>
       <label for="level">Level number *</label>
-      <input type="number" id="level" name="level" min="0" required placeholder="e.g. 3 for volcano_peak" />
+      <input type="number" id="level" name="level" min="0" required placeholder="e.g. 0 = main island, 3 = volcano peak" />
+      <small>Required — whole number only</small>
 
-      <label for="imageUrl">GitHub image path</label>
-      <input type="text" id="imageUrl" name="imageUrl" placeholder="images/volcano-peak.jpg" />
-
-      <label for="mapImageFile">Select local image (optional preview)</label>
-      <input type="file" id="mapImageFile" accept="image/*" />
-
-      <div class="preview-container">
-        <img id="mapPreview" style="display:none;" alt="Preview" />
-      </div>
+      <label for="imageUrl">ImageURL</label>
+      <input type="text" id="imageUrl" name="imageUrl" placeholder="images/base_camp.jpg" />
+      <small>Path to the map image on GitHub. Leave empty if not changing background.</small>
     </fieldset>
 
     <!-- Zoom Region -->
     <fieldset>
-      <legend>Zoom Region (paste from picker)</legend>
-      <label for="points">Polygon coordinates</label>
-      <textarea id="points" name="points" rows="4" placeholder="Paste from picker above"></textarea>
-      <small>Format: x1,y1 x2,y2 x3,y3 ... (space separated)</small>
+      <legend>Zoom Region (optional)</legend>
+      <label for="points">RegionPoints</label>
+      <textarea id="points" name="points" rows="4" placeholder="e.g. 80,520 520,520 520,760 320,800 80,720"></textarea>
+      <small>Space-separated x,y pairs for the clickable polygon area.</small>
 
-      <label for="nextLevel">Zooms to level</label>
-      <input type="number" id="nextLevel" name="nextLevel" placeholder="e.g. 4" />
+      <label for="nextLevel">NextLevel</label>
+      <input type="number" id="nextLevel" name="nextLevel" min="0" placeholder="e.g. 4" />
+      <small>Level to zoom to when the region is clicked. Leave empty if not a zoom area.</small>
     </fieldset>
 
     <!-- Interactive Object -->
     <fieldset>
-      <legend>Interactive Object / Marker (optional)</legend>
-      <label for="objectType">Object type</label>
+      <legend>Interactive Object (optional)</legend>
+      <label for="objectType">ObjectType</label>
       <select id="objectType" name="objectType">
         <option value="">— None —</option>
-        <option value="marker">Simple marker (gold circle)</option>
-        <option value="icon">Image icon / symbol</option>
-        <option value="npc">NPC / character</option>
-        <option value="collectible">Collectible / item</option>
+        <option value="marker">marker</option>
+        <option value="icon">icon</option>
+        <option value="npc">npc</option>
+        <option value="collectible">collectible</option>
       </select>
+      <small>Select if adding a marker or object. Leave "— None —" if not.</small>
 
       <div id="objectFields" style="display:none;">
-        <label for="objectPoints">Position (x,y) *</label>
-        <input type="text" id="objectPoints" name="objectPoints" required placeholder="e.g. 340,520" />
+        <label for="objectPoints">ObjectPoints</label>
+        <input type="text" id="objectPoints" name="objectPoints" placeholder="e.g. 300,400" />
+        <small>Single x,y coordinate for the object position.</small>
 
-        <label for="objName">Name / Title</label>
-        <input type="text" id="objName" name="objName" placeholder="Ancient Lava Shrine" />
-
-        <label for="objDesc">Description / Dialog / Info</label>
-        <textarea id="objDesc" name="objDesc" rows="3" placeholder="A mysterious shrine that glows at night..."></textarea>
-
-        <label for="objImageFile">Select object image</label>
-        <input type="file" id="objImageFile" accept="image/*" />
-
-        <div class="preview-container">
-          <img id="objPreview" style="display:none;" alt="Preview" />
-        </div>
-
-        <label for="objImage">GitHub object image path</label>
-        <input type="text" id="objImage" name="objImage" placeholder="images/icons/shrine.png" />
+        <label for="objectProperties">ObjectProperties</label>
+        <textarea id="objectProperties" name="objectProperties" rows="3" placeholder='e.g. {"name":"Inn","desc":"Rest here"}'></textarea>
+        <small>JSON string for properties (name, desc, image, etc.). Leave empty if not needed.</small>
       </div>
     </fieldset>
 
-    <button type="submit">Save to Google Sheet</button>
+    <button type="submit">Send to Sheet</button>
   </form>
 
-  <div id="successMessage" style="display:none; margin:32px 0; padding:20px; background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0; border-radius:10px; text-align:center;">
-    <strong>✓ Saved successfully!</strong><br><br>
-    <a href="index.html">Add another</a> • <a href="https://guerillagardeningkzn-design.github.io/hawaii/" target="_blank">View map</a>
-  </div>
-
   <script>
-    // Load preview image from GitHub path or local file
-    const imageUrlInput = document.getElementById('imageUrl');
-    const mapImg = document.getElementById('mapImg');
-    const mapCanvas = document.getElementById('mapCanvas');
-    const ctx = mapCanvas.getContext('2d');
-    let imgLoaded = false;
-
-    function loadPreview(url) {
-      mapImg.src = url;
-      mapImg.onload = () => {
-        imgLoaded = true;
-        mapImg.style.display = 'block';
-        mapCanvas.width = mapImg.clientWidth;
-        mapCanvas.height = mapImg.clientHeight;
-        mapCanvas.style.display = 'block';
-      };
-    }
-
-    imageUrlInput.addEventListener('input', () => {
-      const url = imageUrlInput.value.trim();
-      if (url) loadPreview(url);
-    });
-
-    document.getElementById('mapImageFile').addEventListener('change', e => {
-      const file = e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = ev => loadPreview(ev.target.result);
-        reader.readAsDataURL(file);
-      }
-    });
-
-    // Drawing logic
-    let mode = 'rectangle';
-    let points = [];
-    let isDrawing = false;
-    let startX, startY;
-
-    document.querySelectorAll('.mode-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        mode = btn.dataset.mode;
-        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        clearCanvas();
-      });
-    });
-
-    function clearCanvas() {
-      ctx.clearRect(0, 0, mapCanvas.width, mapCanvas.height);
-      points = [];
-      isDrawing = false;
-      document.getElementById('coordsOutput').value = '';
-    }
-
-    document.getElementById('clearBtn').addEventListener('click', clearCanvas);
-
-    function getCoords(e) {
-      const rect = mapCanvas.getBoundingClientRect();
-      return {
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top
-      };
-    }
-
-    function startDraw(e) {
-      if (!imgLoaded) return;
-      e.preventDefault();
-      const pos = getCoords(e);
-      startX = pos.x;
-      startY = pos.y;
-      isDrawing = true;
-      points = [{x: pos.x, y: pos.y}];
-
-      if (mode === 'polygon') {
-        drawPoint(pos.x, pos.y);
-      }
-    }
-
-    function draw(e) {
-      if (!isDrawing) return;
-      e.preventDefault();
-      const pos = getCoords(e);
-
-      ctx.clearRect(0, 0, mapCanvas.width, mapCanvas.height);
-
-      if (mode === 'rectangle') {
-        const w = pos.x - startX;
-        const h = pos.y - startY;
-        ctx.strokeStyle = 'red';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(startX, startY, w, h);
-      } else if (mode === 'circle') {
-        const radius = Math.hypot(pos.x - startX, pos.y - startY);
-        ctx.beginPath();
-        ctx.arc(startX, startY, radius, 0, Math.PI * 2);
-        ctx.strokeStyle = 'red';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-      } else if (mode === 'polygon') {
-        ctx.beginPath();
-        ctx.moveTo(points[0].x, points[0].y);
-        for (let p of points) ctx.lineTo(p.x, p.y);
-        ctx.lineTo(pos.x, pos.y);
-        ctx.strokeStyle = 'red';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-      }
-    }
-
-    function finishDraw(e) {
-      if (!isDrawing) return;
-      isDrawing = false;
-      const pos = getCoords(e);
-
-      if (mode === 'rectangle') {
-        const x1 = Math.min(startX, pos.x);
-        const y1 = Math.min(startY, pos.y);
-        const x2 = Math.max(startX, pos.x);
-        const y2 = Math.max(startY, pos.y);
-        points = [
-          {x: x1, y: y1}, {x: x2, y: y1},
-          {x: x2, y: y2}, {x: x1, y: y2}
-        ];
-      } else if (mode === 'circle') {
-        const radius = Math.hypot(pos.x - startX, pos.y - startY);
-        points = [];
-        for (let i = 0; i < 8; i++) {
-          const angle = (i / 8) * Math.PI * 2;
-          points.push({
-            x: startX + radius * Math.cos(angle),
-            y: startY + radius * Math.sin(angle)
-          });
-        }
-      } else if (mode === 'polygon') {
-        points.push({x: pos.x, y: pos.y});
-      }
-
-      const coords = points.map(p => `${Math.round(p.x)},${Math.round(p.y)}`).join(' ');
-      document.getElementById('coordsOutput').value = coords;
-
-      ctx.clearRect(0, 0, mapCanvas.width, mapCanvas.height);
-      ctx.beginPath();
-      ctx.moveTo(points[0].x, points[0].y);
-      for (let p of points) ctx.lineTo(p.x, p.y);
-      ctx.closePath();
-      ctx.strokeStyle = 'blue';
-      ctx.lineWidth = 3;
-      ctx.stroke();
-    }
-
-    // Event listeners for mouse
-    mapCanvas.addEventListener('mousedown', startDraw);
-    mapCanvas.addEventListener('mousemove', draw);
-    mapCanvas.addEventListener('mouseup', finishDraw);
-    mapCanvas.addEventListener('mouseleave', finishDraw);
-
-    // Touch support
-    mapCanvas.addEventListener('touchstart', e => { e.preventDefault(); startDraw(e.touches[0]); });
-    mapCanvas.addEventListener('touchmove', e => { e.preventDefault(); draw(e.touches[0]); });
-    mapCanvas.addEventListener('touchend', finishDraw);
-
-    document.getElementById('copyBtn').addEventListener('click', () => {
-      const text = document.getElementById('coordsOutput').value;
-      if (text) {
-        navigator.clipboard.writeText(text).then(() => {
-          alert('Coordinates copied! Paste into "Polygon coordinates" field.');
-        });
-      }
-    });
-
-    // Show/hide object fields
+    // =============================================
+    //   SHOW/HIDE OBJECT FIELDS
+    // =============================================
     document.getElementById('objectType').addEventListener('change', function() {
       document.getElementById('objectFields').style.display = this.value ? 'block' : 'none';
     });
-
-    // Build objectProperties JSON
-    document.getElementById('mapForm').addEventListener('submit', function(e) {
-      const type = document.getElementById('objectType').value;
-      if (!type) return;
-
-      const props = {
-        name: document.getElementById('objName').value.trim() || undefined,
-        desc: document.getElementById('objDesc').value.trim() || undefined,
-        image: document.getElementById('objImage').value.trim() || undefined
-      };
-      Object.keys(props).forEach(k => !props[k] && delete props[k]);
-
-      const input = document.createElement('input');
-      input.type = 'hidden';
-      input.name = 'objectProperties';
-      input.value = JSON.stringify(props);
-      this.appendChild(input);
-    });
-
-    // Success message
-    if (window.location.search.includes('success')) {
-      document.getElementById('successMessage').style.display = 'block';
-    }
   </script>
 
 </body>
