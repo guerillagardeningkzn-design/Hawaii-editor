@@ -265,23 +265,29 @@
   objectTypeSelect.addEventListener('change', toggleObjectFields);
 
   // Build objectProperties JSON before submit (unchanged)
-  document.getElementById('mapForm').addEventListener('submit', function(e) {
-    const type = objectTypeSelect.value;
-    if (!type) return;
+  document.getElementById('mapForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
 
-    const props = {
-      name: document.getElementById('objName').value.trim() || undefined,
-      desc: document.getElementById('objDesc').value.trim() || undefined,
-      image: document.getElementById('objImage').value.trim() || undefined
-    };
-    Object.keys(props).forEach(k => !props[k] && delete props[k]);
+  const formData = new FormData(this);
 
-    const input = document.createElement('input');
-    input.type = 'hidden';
-    input.name = 'objectProperties';
-    input.value = JSON.stringify(props);
-    this.appendChild(input);
-  });
+  try {
+    await fetch(this.action, {
+      method: 'POST',
+      body: formData,
+      mode: 'cors',
+      cache: 'no-cache'
+    });
+
+    // We don't wait for response body (CORS may block it)
+    // Just assume success if no network error
+    document.getElementById('successMessage').style.display = 'block';
+    this.reset();
+    document.getElementById('successMessage').scrollIntoView({ behavior: 'smooth' });
+
+  } catch (err) {
+    alert('Error submitting form: ' + err.message);
+  }
+});
 
   // Show success message if redirected with ?success=true
   if (window.location.search.includes('success')) {
