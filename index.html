@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hawaii Map Editor – Send Data to Sheet</title>
+  <title>Add New Map – Hawaii Editor</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      max-width: 720px;
-      margin: 30px auto;
-      padding: 20px;
+      max-width: 600px;
+      margin: 40px auto;
+      padding: 0 20px;
       background: #f8f9fa;
       color: #333;
       line-height: 1.6;
@@ -17,147 +17,86 @@
     h1 {
       text-align: center;
       color: #1a5276;
-      margin-bottom: 12px;
+      margin-bottom: 24px;
     }
     .intro {
       text-align: center;
       color: #555;
       margin-bottom: 32px;
     }
-    fieldset {
-      margin-bottom: 32px;
-      padding: 20px;
-      border: 1px solid #d1d9e0;
-      border-radius: 10px;
-      background: white;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    }
-    legend {
-      font-weight: bold;
-      color: #1a5276;
-      padding: 0 12px;
-      font-size: 1.2rem;
-    }
     label {
       display: block;
-      margin: 18px 0 6px;
+      margin: 20px 0 8px;
       font-weight: 600;
       color: #1f2937;
     }
-    input[type="text"],
     input[type="number"],
-    textarea,
-    select {
+    input[type="text"] {
       width: 100%;
-      padding: 10px 12px;
+      padding: 12px;
       border: 1px solid #9ca3af;
       border-radius: 6px;
       font-size: 1rem;
       box-sizing: border-box;
     }
-    textarea {
-      min-height: 90px;
-      resize: vertical;
-    }
-    .helper, small {
+    small {
       display: block;
-      margin-top: 6px;
-      color: #4b5563;
-      font-size: 0.92rem;
-    }
-    .helper strong {
-      color: #1e40af;
-    }
-    .warning {
-      color: #b45309;
-      font-weight: 500;
+      margin-top: 4px;
+      color: #6b7280;
+      font-size: 0.9rem;
     }
     button {
       width: 100%;
-      padding: 14px;
+      padding: 16px;
+      margin-top: 32px;
       background: #15803d;
       color: white;
       border: none;
       border-radius: 8px;
-      font-size: 1.15rem;
+      font-size: 1.2rem;
       font-weight: bold;
       cursor: pointer;
-      margin-top: 24px;
     }
     button:hover {
       background: #166534;
+    }
+    .note {
+      margin-top: 40px;
+      padding: 16px;
+      background: #e5e7eb;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      color: #4b5563;
     }
   </style>
 </head>
 <body>
 
-  <h1>Hawaii Map Editor</h1>
+  <h1>Add New Map</h1>
   <p class="intro">
-    Send data to your Google Sheet in the required format for the Hawaii game.<br>
-    Fill only the fields you need — empty fields are OK for most cases.
+    Add a new zoom level / map to your Hawaii game sheet.<br>
+    Fill only the two fields below — then click Save.
   </p>
 
-  <form id="mapForm" action="https://script.google.com/macros/s/AKfycbzK4d2__PMlMrJKjV_U1IqnauUFar1YCdVrPaFfmGbqHNFyOep-BppaNLUVKSdRqy0/exec" method="POST">
+  <form action="https://script.google.com/macros/s/AKfycbzK4d2__PMlMrJKjV_U1IqnauUFar1YCdVrPaFfmGbqHNFyOep-BppaNLUVKSdRqy0/exec" method="POST">
 
-    <!-- Level & Map Image -->
-    <fieldset>
-      <legend>Level & Map Image</legend>
-      <label for="level">Level number *</label>
-      <input type="number" id="level" name="level" min="0" required placeholder="e.g. 0 = main island, 3 = volcano peak" />
-      <small>Required — whole number only</small>
+    <label for="level">Level number *</label>
+    <input type="number" id="level" name="level" min="0" required placeholder="e.g. 4 for new map" />
+    <small>Required — use the next unused number (check your sheet first)</small>
 
-      <label for="imageUrl">ImageURL</label>
-      <input type="text" id="imageUrl" name="imageUrl" placeholder="images/base_camp.jpg" />
-      <small>Path to the map image on GitHub. Leave empty if not changing background.</small>
-    </fieldset>
+    <label for="imageUrl">Image path on GitHub *</label>
+    <input type="text" id="imageUrl" name="imageUrl" required placeholder="e.g. images/base_camp.jpg" />
+    <small>Required — upload the image to your repo's images/ folder first</small>
 
-    <!-- Zoom Region -->
-    <fieldset>
-      <legend>Zoom Region (optional)</legend>
-      <label for="points">RegionPoints</label>
-      <textarea id="points" name="points" rows="4" placeholder="e.g. 80,520 520,520 520,760 320,800 80,720"></textarea>
-      <small>Space-separated x,y pairs for the clickable polygon area.</small>
-
-      <label for="nextLevel">NextLevel</label>
-      <input type="number" id="nextLevel" name="nextLevel" min="0" placeholder="e.g. 4" />
-      <small>Level to zoom to when the region is clicked. Leave empty if not a zoom area.</small>
-    </fieldset>
-
-    <!-- Interactive Object -->
-    <fieldset>
-      <legend>Interactive Object (optional)</legend>
-      <label for="objectType">ObjectType</label>
-      <select id="objectType" name="objectType">
-        <option value="">— None —</option>
-        <option value="marker">marker</option>
-        <option value="icon">icon</option>
-        <option value="npc">npc</option>
-        <option value="collectible">collectible</option>
-      </select>
-      <small>Select if adding a marker or object. Leave "— None —" if not.</small>
-
-      <div id="objectFields" style="display:none;">
-        <label for="objectPoints">ObjectPoints</label>
-        <input type="text" id="objectPoints" name="objectPoints" placeholder="e.g. 300,400" />
-        <small>Single x,y coordinate for the object position.</small>
-
-        <label for="objectProperties">ObjectProperties</label>
-        <textarea id="objectProperties" name="objectProperties" rows="3" placeholder='e.g. {"name":"Inn","desc":"Rest here"}'></textarea>
-        <small>JSON string for properties (name, desc, image, etc.). Leave empty if not needed.</small>
-      </div>
-    </fieldset>
-
-    <button type="submit">Send to Sheet</button>
+    <button type="submit">Save New Map</button>
   </form>
 
-  <script>
-    // =============================================
-    //   SHOW/HIDE OBJECT FIELDS
-    // =============================================
-    document.getElementById('objectType').addEventListener('change', function() {
-      document.getElementById('objectFields').style.display = this.value ? 'block' : 'none';
-    });
-  </script>
+  <div class="note">
+    <strong>Quick reminder</strong><br>
+    • Upload the map image to GitHub first (images/ folder).<br>
+    • After saving, hard-refresh your game page to see the new level.<br>
+    • To make it zoomable, add a region on an existing level pointing to this new level number.
+  </div>
 
 </body>
 </html>
