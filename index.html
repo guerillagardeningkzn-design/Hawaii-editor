@@ -124,47 +124,47 @@
   </p>
 
   <form id="mapForm" action="https://script.google.com/macros/s/AKfycbzK4d2__PMlMrJKjV_U1IqnauUFar1YCdVrPaFfmGbqHNFyOep-BppaNLUVKSdRqy0/exec" method="POST">
-<!-- ============================================= -->
-<!--          1. LEVEL & MAIN MAP IMAGE           -->
-<!-- ============================================= -->
-<fieldset>
-  <legend>1. Level & Main Map Image</legend>
-
-  <label for="level">Level number <span style="color:#e11d48;">*</span></label>
-  <input type="number" id="level" name="level" min="0" required placeholder="Examples: 0 = main island, 1 = gulf coast, etc." />
-  <small>Required — whole number only</small>
-
-  <label for="imageUrl">GitHub image path</label>
-  <input type="text" id="imageUrl" name="imageUrl" placeholder="images/volcano-peak.jpg" />
-  <small>
-    <strong>Only required when:</strong> creating a new level or changing the background image.<br>
-    <strong>Leave empty when:</strong> adding markers/objects/NPCs to an existing level — the map will keep its current background.
-  </small>
-
-  <label for="mapImageFile">Select local image file (for preview & path suggestion)</label>
-  <input type="file" id="mapImageFile" accept="image/*" />
-  
-  <div class="preview-container">
-    <img id="mapPreview" style="display:none;" alt="Preview of selected map image" />
-  </div>
-  
-  <div class="helper">
-    <strong>Quick steps for new images:</strong>
-    <ol style="margin:8px 0 0 20px; padding-left:0; list-style-position:inside;">
-      <li>Select file above → preview appears + suggested path shown</li>
-      <li>Open your GitHub repo in another tab</li>
-      <li>"Add file" → "Upload files" → drag/drop image</li>
-      <li>Place in <code>images/</code> folder → commit</li>
-      <li>Copy suggested path → paste here (only if creating/changing the map background)</li>
-    </ol>
-    <p class="warning" style="margin-top:12px;">
-      Paths are case-sensitive! Use lowercase letters and dashes (-), no spaces.
-    </p>
-  </div>
-</fieldset>
 
     <!-- ============================================= -->
-    <!--               2. ZOOM REGION                 -->
+    <!-- 1. LEVEL & MAIN MAP IMAGE -->
+    <!-- ============================================= -->
+    <fieldset>
+      <legend>1. Level & Main Map Image</legend>
+      <label for="level">Level number <span style="color:#e11d48;">*</span></label>
+      <input type="number" id="level" name="level" min="0" required placeholder="Examples: 0 = main island, 1 = gulf coast, etc." />
+      <small>Required — whole number only</small>
+
+      <label for="imageUrl">GitHub image path</label>
+      <input type="text" id="imageUrl" name="imageUrl" placeholder="images/volcano-peak.jpg" />
+      <small>
+        <strong>Only required when:</strong> creating a new level or changing the background image.<br>
+        <strong>Leave empty when:</strong> adding markers/objects/NPCs to an existing level — the map will keep its current background.
+      </small>
+
+      <label for="mapImageFile">Select local image file (for preview & path suggestion)</label>
+      <input type="file" id="mapImageFile" accept="image/*" />
+
+      <div class="preview-container">
+        <img id="mapPreview" style="display:none;" alt="Preview of selected map image" />
+      </div>
+
+      <div class="helper">
+        <strong>Quick steps for new images:</strong>
+        <ol style="margin:8px 0 0 20px; padding-left:0; list-style-position:inside;">
+          <li>Select file above → preview appears + suggested path shown</li>
+          <li>Open your GitHub repo in another tab</li>
+          <li>"Add file" → "Upload files" → drag/drop image</li>
+          <li>Place in <code>images/</code> folder → commit</li>
+          <li>Copy suggested path → paste here (only if creating/changing the map background)</li>
+        </ol>
+        <p class="warning" style="margin-top:12px;">
+          Paths are case-sensitive! Use lowercase letters and dashes (-), no spaces.
+        </p>
+      </div>
+    </fieldset>
+
+    <!-- ============================================= -->
+    <!-- 2. ZOOM REGION -->
     <!-- ============================================= -->
     <fieldset>
       <legend>2. Zoom Region (optional)</legend>
@@ -184,7 +184,7 @@
     </fieldset>
 
     <!-- ============================================= -->
-    <!--            3. INTERACTIVE OBJECT             -->
+    <!-- 3. INTERACTIVE OBJECT -->
     <!-- ============================================= -->
     <fieldset>
       <legend>3. Interactive Object / Marker (optional)</legend>
@@ -200,7 +200,6 @@
       </select>
 
       <div id="objectFields" style="display:none;">
-
         <label for="objectPoints">Position (x,y) <span style="color:#e11d48;">*</span></label>
         <input type="text" id="objectPoints" name="objectPoints" required placeholder="e.g. 340,520" />
         <small>Single coordinate — center of the object/marker</small>
@@ -213,7 +212,7 @@
 
         <label for="objImageFile">Select object image (icon/NPC/collectible)</label>
         <input type="file" id="objImageFile" accept="image/*" />
-        
+
         <div class="preview-container">
           <img id="objPreview" style="display:none;" alt="Preview of selected object image" />
         </div>
@@ -242,14 +241,14 @@
     <a href="https://docs.google.com/spreadsheets/d/12o0xFSmWEAXMq1My0IFTA5c9OraPCRydjNei6QhYFYQ/edit?usp=sharing" target="_blank">Open Google Sheet</a>
   </div>
 
+  <!-- ============================================= -->
+  <!--   PREVIEW + PATH SUGGESTION LOGIC             -->
+  <!-- ============================================= -->
   <script>
-    // ────────────────────────────────────────────────
-    //   MAIN MAP IMAGE PREVIEW + PATH SUGGESTION
-    // ────────────────────────────────────────────────
+    // MAIN MAP IMAGE PREVIEW + PATH SUGGESTION
     document.getElementById('mapImageFile').addEventListener('change', function(e) {
       const file = e.target.files[0];
       if (!file) return;
-
       const reader = new FileReader();
       reader.onload = function(ev) {
         const img = document.getElementById('mapPreview');
@@ -257,17 +256,13 @@
         img.style.display = 'block';
       };
       reader.readAsDataURL(file);
-
-      suggestPath(file.name, 'suggestedMapPath'); // We'll add this function below
+      suggestPath(file.name, 'map'); // 'map' for main image
     });
 
-    // ────────────────────────────────────────────────
-    //   OBJECT IMAGE PREVIEW + PATH SUGGESTION
-    // ────────────────────────────────────────────────
+    // OBJECT IMAGE PREVIEW + PATH SUGGESTION
     document.getElementById('objImageFile').addEventListener('change', function(e) {
       const file = e.target.files[0];
       if (!file) return;
-
       const reader = new FileReader();
       reader.onload = function(ev) {
         const img = document.getElementById('objPreview');
@@ -275,59 +270,50 @@
         img.style.display = 'block';
       };
       reader.readAsDataURL(file);
-
-      suggestPath(file.name, 'suggestedObjPath');
+      suggestPath(file.name, 'object'); // 'object' for object image
     });
 
-    // Shared helper to show path suggestion
-    function suggestPath(filename, targetElementId) {
+    // Shared path suggestion function
+    function suggestPath(filename, type) {
       const safeName = filename.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9.-]/g, '');
       const path = `images/${safeName}`;
-      const msg = document.createElement('p');
-      msg.innerHTML = `<strong>Suggested path:</strong> ${path}<br>
-        <span style="color:#444;">→ Upload this file to GitHub now (images/ folder)<br>
-        → Then copy this path into the corresponding field</span>`;
-      const container = document.getElementById(targetElementId) || document.createElement('div');
-      container.innerHTML = '';
-      container.appendChild(msg);
-      // If you want separate containers, create them in HTML
+      let msg = `<strong>Suggested path (${type === 'map' ? 'map' : 'object'}):</strong> ${path}<br>`;
+      msg += `<span style="color:#444;">→ Upload to GitHub now (images/ folder)<br>→ Copy this path into the field above</span>`;
+      alert(msg); // Simple alert for now – you can replace with DOM insertion later
     }
 
-    // ────────────────────────────────────────────────
-    //   SHOW/HIDE OBJECT SECTION
-    // ────────────────────────────────────────────────
+    // SHOW/HIDE OBJECT SECTION
     document.getElementById('objectType').addEventListener('change', function() {
       document.getElementById('objectFields').style.display = this.value ? 'block' : 'none';
     });
 
-    // ────────────────────────────────────────────────
-    //   BUILD OBJECT PROPERTIES JSON BEFORE SUBMIT
-    // ────────────────────────────────────────────────
-    document.getElementById('mapForm').addEventListener('submit', function(e) {
-      const type = document.getElementById('objectType').value;
-      if (!type) return;
+    // =============================================
+    //   AJAX FORM SUBMISSION – THIS IS THE NEW CODE
+    // =============================================
+    document.getElementById('mapForm').addEventListener('submit', async function(e) {
+      e.preventDefault(); // Prevent classic form submit (no redirect/iframe errors)
 
-      const props = {
-        name:  document.getElementById('objName').value.trim()  || undefined,
-        desc:  document.getElementById('objDesc').value.trim()  || undefined,
-        image: document.getElementById('objImage').value.trim() || undefined
-      };
+      const formData = new FormData(this);
 
-      Object.keys(props).forEach(k => !props[k] && delete props[k]);
+      try {
+        const response = await fetch(this.action, {
+          method: 'POST',
+          body: formData
+        });
 
-      const input = document.createElement('input');
-      input.type = 'hidden';
-      input.name = 'objectProperties';
-      input.value = JSON.stringify(props);
-      this.appendChild(input);
+        if (response.ok) {
+          // Success: show message, clear form, scroll to it
+          document.getElementById('successMessage').style.display = 'block';
+          this.reset(); // Clear inputs for next entry
+          document.getElementById('successMessage').scrollIntoView({ behavior: 'smooth' });
+        } else {
+          const errorText = await response.text();
+          alert('Error from server: ' + errorText);
+        }
+      } catch (err) {
+        alert('Network error: ' + err.message);
+      }
     });
-
-    // ────────────────────────────────────────────────
-    //   SHOW SUCCESS MESSAGE AFTER REDIRECT
-    // ────────────────────────────────────────────────
-    if (window.location.search.includes('success')) {
-      document.getElementById('successMessage').style.display = 'block';
-    }
   </script>
 
 </body>
