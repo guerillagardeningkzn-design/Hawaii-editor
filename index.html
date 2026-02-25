@@ -144,153 +144,116 @@
   </div>
 
   <script>
-    // =============================================
-    //   IMAGE PREVIEW + PATH SUGGESTION (unchanged)
-    // =============================================
-    document.getElementById('mapImageFile').addEventListener('change', function(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function(ev) {
-        const img = document.getElementById('mapPreview');
-        img.src = ev.target.result;
-        img.style.display = 'block';
-      };
-      reader.readAsDataURL(file);
-      suggestPath(file.name, 'map');
-    });
+  // =============================================
+  //   MAIN MAP IMAGE PREVIEW + PATH SUGGESTION
+  // =============================================
+  const mapImageFile = document.getElementById('mapImageFile');
+  const mapPreview = document.getElementById('mapPreview');
+  const mapPathSuggestion = document.createElement('p');
+  mapPathSuggestion.style.marginTop = '8px';
+  mapPathSuggestion.style.color = '#0066cc';
+  document.querySelector('.preview-container').appendChild(mapPathSuggestion); // or wherever you want it
 
-    document.getElementById('objImageFile').addEventListener('change', function(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function(ev) {
-        const img = document.getElementById('objPreview');
-        img.src = ev.target.result;
-        img.style.display = 'block';
-      };
-      reader.readAsDataURL(file);
-      suggestPath(file.name, 'object');
-    });
+  mapImageFile.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
 
-    function suggestPath(filename, type) {
-      const safeName = filename.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9.-]/g, '');
-      const path = `images/${safeName}`;
-      alert(`Suggested path for ${type}:\n${path}\n\n→ Upload to GitHub now\n→ Copy into field`);
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      mapPreview.src = ev.target.result;
+      mapPreview.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+
+    // Path suggestion
+    const safeName = file.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9.-]/g, '');
+    const path = `images/${safeName}`;
+    mapPathSuggestion.innerHTML = `Suggested path: <strong>${path}</strong><br>
+      → Upload to GitHub repo (images/ folder)<br>
+      → Copy into "GitHub image path" field`;
+  });
+
+  // =============================================
+  //   OBJECT IMAGE PREVIEW + PATH SUGGESTION
+  // =============================================
+  const objImageFile = document.getElementById('objImageFile');
+  const objPreview = document.getElementById('objPreview');
+  const objPathSuggestion = document.createElement('p');
+  objPathSuggestion.style.marginTop = '8px';
+  objPathSuggestion.style.color = '#0066cc';
+  document.querySelector('#objectFields .preview-container').appendChild(objPathSuggestion);
+
+  objImageFile.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      objPreview.src = ev.target.result;
+      objPreview.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+
+    const safeName = file.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9.-]/g, '');
+    const path = `images/icons/${safeName}`; // or images/npcs/ etc.
+    objPathSuggestion.innerHTML = `Suggested path: <strong>${path}</strong><br>
+      → Upload to GitHub → copy into "GitHub object image path"`;
+  });
+
+  // =============================================
+  //   SHOW/HIDE OBJECT FIELDS + REQUIRED TOGGLE
+  // =============================================
+  const objectType = document.getElementById('objectType');
+  const objectFields = document.getElementById('objectFields');
+  const objectPointsInput = document.getElementById('objectPoints');
+
+  function toggleObjectFields() {
+    const isActive = !!objectType.value;
+    objectFields.style.display = isActive ? 'block' : 'none';
+
+    // Toggle required only when visible
+    if (isActive) {
+      objectPointsInput.setAttribute('required', '');
+    } else {
+      objectPointsInput.removeAttribute('required');
     }
-
-    // =============================================
-    //   SHOW/HIDE OBJECT FIELDS
-    // =============================================
-    // SHOW/HIDE OBJECT FIELDS with required toggle
-const objectTypeSelect = document.getElementById('objectType');
-const objectFields = document.getElementById('objectFields');
-const objectPointsInput = document.getElementById('objectPoints');
-
-function toggleObjectFields() {
-  const isVisible = !!objectTypeSelect.value;
-  objectFields.style.display = isVisible ? 'block' : 'none';
-
-  // Toggle required attribute
-  if (isVisible) {
-    objectPointsInput.setAttribute('required', '');
-  } else {
-    objectPointsInput.removeAttribute('required');
   }
-}
 
-// Initial check on load
-toggleObjectFields();
+  // Run immediately (fixes initial hidden state)
+  toggleObjectFields();
 
-// Update on selection change
-objectTypeSelect.addEventListener('change', toggleObjectFields);
+  // Run on every change
+  objectType.addEventListener('change', toggleObjectFields);
 
-// Build objectProperties JSON before submit (unchanged)
-document.getElementById('mapForm').addEventListener('submit', function(e) {
-  const type = objectTypeSelect.value;
-  if (!type) return;
+  // =============================================
+  //   BUILD OBJECT PROPERTIES JSON BEFORE SUBMIT
+  // =============================================
+  document.getElementById('mapForm').addEventListener('submit', function(e) {
+    const type = objectType.value;
+    if (!type) return; // no object selected → no JSON
 
-  const props = {
-    name: document.getElementById('objName').value.trim() || undefined,
-    desc: document.getElementById('objDesc').value.trim() || undefined,
-    image: document.getElementById('objImage').value.trim() || undefined
-  };
-  Object.keys(props).forEach(k => !props[k] && delete props[k]);
+    const props = {
+      name: document.getElementById('objName').value.trim() || undefined,
+      desc: document.getElementById('objDesc').value.trim() || undefined,
+      image: document.getElementById('objImage').value.trim() || undefined
+    };
 
-  const input = document.createElement('input');
-  input.type = 'hidden';
-  input.name = 'objectProperties';
-  input.value = JSON.stringify(props);
-  this.appendChild(input);
-});
+    Object.keys(props).forEach(k => !props[k] && delete props[k]);
 
-// Show success message after redirect
-if (window.location.search.includes('success')) {
-  document.getElementById('successMessage').style.display = 'block';
-  document.getElementById('successMessage').scrollIntoView({ behavior: 'smooth' });
-}
+    const hiddenInput = document.createElement('input');
+    hiddenInput.type = 'hidden';
+    hiddenInput.name = 'objectProperties';
+    hiddenInput.value = JSON.stringify(props);
+    this.appendChild(hiddenInput);
+  });
 
-    // =============================================
-    //   COORDINATE PICKER – CLICK ON MAP PREVIEW
-    // =============================================
-    const mapPreview = document.getElementById('mapPreview');
-    const mapContainer = document.getElementById('mapPreviewContainer');
-    const coordDot = document.getElementById('coordDot');
-    const objectPointsInput = document.getElementById('objectPoints');
-
-    mapPreview.addEventListener('click', function(e) {
-      if (!mapPreview.src) return; // no image loaded yet
-
-      // Get click position relative to image
-      const rect = mapPreview.getBoundingClientRect();
-      const xClick = e.clientX - rect.left;
-      const yClick = e.clientY - rect.top;
-
-      // Scale to full map size (600×800)
-      const scaleX = 600 / rect.width;
-      const scaleY = 800 / rect.height;
-
-      const realX = Math.round(xClick * scaleX);
-      const realY = Math.round(yClick * scaleY);
-
-      // Show visual dot
-      coordDot.style.left = `${xClick}px`;
-      coordDot.style.top = `${yClick}px`;
-      coordDot.style.display = 'block';
-
-      // Fill input field
-      objectPointsInput.value = `${realX},${realY}`;
-    });
-
-    // =============================================
-    //   BUILD OBJECT PROPERTIES JSON BEFORE SUBMIT
-    // =============================================
-    document.getElementById('mapForm').addEventListener('submit', function(e) {
-      const type = document.getElementById('objectType').value;
-      if (!type) return;
-
-      const props = {
-        name: document.getElementById('objName').value.trim() || undefined,
-        desc: document.getElementById('objDesc').value.trim() || undefined,
-        image: document.getElementById('objImage').value.trim() || undefined
-      };
-      Object.keys(props).forEach(k => !props[k] && delete props[k]);
-
-      const input = document.createElement('input');
-      input.type = 'hidden';
-      input.name = 'objectProperties';
-      input.value = JSON.stringify(props);
-      this.appendChild(input);
-    });
-
-    // =============================================
-    //   SHOW SUCCESS MESSAGE AFTER REDIRECT
-    // =============================================
-    if (window.location.search.includes('success')) {
-      document.getElementById('successMessage').style.display = 'block';
-      document.getElementById('successMessage').scrollIntoView({ behavior: 'smooth' });
-    }
-  </script>
-
+  // =============================================
+  //   SHOW SUCCESS MESSAGE AFTER REDIRECT
+  // =============================================
+  if (window.location.search.includes('success')) {
+    document.getElementById('successMessage').style.display = 'block';
+    document.getElementById('successMessage').scrollIntoView({ behavior: 'smooth' });
+  }
+</script>
 </body>
 </html>
