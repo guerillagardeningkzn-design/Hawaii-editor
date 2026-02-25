@@ -291,29 +291,35 @@
     //   AJAX FORM SUBMISSION – THIS IS THE NEW CODE
     // =============================================
     document.getElementById('mapForm').addEventListener('submit', async function(e) {
-      e.preventDefault(); // Prevent classic form submit (no redirect/iframe errors)
+  e.preventDefault();
 
-      const formData = new FormData(this);
+  const formData = new FormData(this);
 
-      try {
-        const response = await fetch(this.action, {
-          method: 'POST',
-          body: formData
-        });
-
-        if (response.ok) {
-          // Success: show message, clear form, scroll to it
-          document.getElementById('successMessage').style.display = 'block';
-          this.reset(); // Clear inputs for next entry
-          document.getElementById('successMessage').scrollIntoView({ behavior: 'smooth' });
-        } else {
-          const errorText = await response.text();
-          alert('Error from server: ' + errorText);
-        }
-      } catch (err) {
-        alert('Network error: ' + err.message);
-      }
+  try {
+    const response = await fetch(this.action, {
+      method: 'POST',
+      body: formData,
+      mode: 'cors',
+      cache: 'no-cache'
     });
+
+    if (response.ok) {
+      const data = await response.json();  // Expect { status: 'success', ... }
+      if (data.status === 'success') {
+        document.getElementById('successMessage').style.display = 'block';
+        this.reset();
+        document.getElementById('successMessage').scrollIntoView({ behavior: 'smooth' });
+      } else {
+        alert('Server responded, but not success: ' + (data.message || 'Unknown'));
+      }
+    } else {
+      const errorText = await response.text();
+      alert('Server error: ' + errorText);
+    }
+  } catch (err) {
+    alert('Network/CORS error: ' + err.message);
+  }
+});
   </script>
 
 </body>
