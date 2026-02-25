@@ -3,100 +3,387 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Add New Map – Hawaii Editor</title>
+  <title>Hawaii Map Editor</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      max-width: 600px;
+      font-family: Arial, Helvetica, sans-serif;
+      max-width: 680px;
       margin: 40px auto;
       padding: 0 20px;
-      background: #f8f9fa;
+      background: #f5f9fc;
       color: #333;
       line-height: 1.6;
     }
     h1 {
       text-align: center;
-      color: #1a5276;
-      margin-bottom: 24px;
+      color: #0c4a6e;
+      margin-bottom: 12px;
     }
     .intro {
       text-align: center;
       color: #555;
       margin-bottom: 32px;
     }
+    fieldset {
+      margin-bottom: 32px;
+      padding: 20px;
+      border: 1px solid #d1d9e0;
+      border-radius: 10px;
+      background: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    legend {
+      font-weight: bold;
+      color: #0c4a6e;
+      padding: 0 12px;
+      font-size: 1.2rem;
+    }
     label {
       display: block;
-      margin: 20px 0 8px;
+      margin: 18px 0 6px;
       font-weight: 600;
       color: #1f2937;
     }
+    input[type="text"],
     input[type="number"],
-    input[type="text"] {
+    input[type="file"],
+    textarea,
+    select {
       width: 100%;
-      padding: 12px;
+      padding: 10px 12px;
       border: 1px solid #9ca3af;
       border-radius: 6px;
       font-size: 1rem;
       box-sizing: border-box;
     }
-    small {
+    textarea {
+      min-height: 90px;
+      resize: vertical;
+    }
+    .helper, small {
       display: block;
-      margin-top: 4px;
-      color: #6b7280;
-      font-size: 0.9rem;
+      margin-top: 6px;
+      color: #4b5563;
+      font-size: 0.92rem;
+    }
+    .helper strong {
+      color: #1e40af;
+    }
+    .warning {
+      color: #b45309;
+      font-weight: 500;
+    }
+    .preview-container {
+      margin: 12px 0;
+      text-align: center;
+      position: relative;
+      border: 2px solid #ccc;
+      display: inline-block;
+      background: #eee;
+      cursor: crosshair;
+    }
+    .preview-container img {
+      display: block;
+      max-width: 100%;
+      height: auto;
+    }
+    #mapCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
     }
     button {
-      width: 100%;
-      padding: 16px;
-      margin-top: 32px;
-      background: #15803d;
+      padding: 10px 20px;
+      margin: 10px 5px 0 0;
+      background: #28a745;
       color: white;
       border: none;
-      border-radius: 8px;
-      font-size: 1.2rem;
-      font-weight: bold;
+      border-radius: 6px;
       cursor: pointer;
     }
     button:hover {
-      background: #166534;
+      background: #218838;
     }
-    .note {
-      margin-top: 40px;
-      padding: 16px;
-      background: #e5e7eb;
-      border-radius: 8px;
-      font-size: 0.95rem;
-      color: #4b5563;
+    #successMessage {
+      display: none;
+      margin: 32px 0;
+      padding: 20px;
+      background: #ecfdf5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+      border-radius: 10px;
+      text-align: center;
+      font-size: 1.1rem;
+    }
+    #successMessage a {
+      color: #047857;
+      font-weight: bold;
+      text-decoration: underline;
     }
   </style>
 </head>
 <body>
 
-  <h1>Add New Map</h1>
+  <h1>Hawaii Map Editor</h1>
   <p class="intro">
-    Add a new zoom level / map to your Hawaii game sheet.<br>
-    Fill only the two fields below — then click Save.
+    Add new maps, zoom regions or interactive objects to your Google Sheet.<br>
+    Use the preview to draw zoom regions by clicking points.
   </p>
 
-  <form action="https://script.google.com/macros/s/AKfycbzK4d2__PMlMrJKjV_U1IqnauUFar1YCdVrPaFfmGbqHNFyOep-BppaNLUVKSdRqy0/exec" method="POST">
+  <form id="mapForm" action="https://script.google.com/macros/s/AKfycbzK4d2__PMlMrJKjV_U1IqnauUFar1YCdVrPaFfmGbqHNFyOep-BppaNLUVKSdRqy0/exec" method="POST">
 
-    <label for="level">Level number *</label>
-    <input type="number" id="level" name="level" min="0" required placeholder="e.g. 4 for new map" />
-    <small>Required — use the next unused number (check your sheet first)</small>
+    <!-- 1. LEVEL & MAP IMAGE -->
+    <fieldset>
+      <legend>1. Level & Map Image</legend>
 
-    <label for="imageUrl">Image path on GitHub *</label>
-    <input type="text" id="imageUrl" name="imageUrl" required placeholder="e.g. images/base_camp.jpg" />
-    <small>Required — upload the image to your repo's images/ folder first</small>
+      <label for="level">Level number <span style="color:#e11d48;">*</span></label>
+      <input type="number" id="level" name="level" min="0" required placeholder="e.g. 0 = main island, 3 = volcano peak" />
+      <small>Required — whole number only</small>
 
-    <button type="submit">Save New Map</button>
+      <label for="imageUrl">GitHub image path</label>
+      <input type="text" id="imageUrl" name="imageUrl" placeholder="images/volcano-peak.jpg" />
+      <small>
+        <strong>Only required when:</strong> creating a new level or changing background.<br>
+        <strong>Leave empty when:</strong> adding regions/objects to existing level.
+      </small>
+
+      <label for="mapImageFile">Select local image (for preview)</label>
+      <input type="file" id="mapImageFile" accept="image/*" />
+
+      <div class="preview-container" id="previewContainer">
+        <img id="mapImg" alt="Map preview for drawing zoom region" style="display:none;">
+        <canvas id="mapCanvas" style="display:none;"></canvas>
+      </div>
+
+      <div class="helper">
+        <strong>Zoom region picker:</strong> Load preview → click "Start Polygon" → click points → "Accept Points" → copy → paste below.
+      </div>
+    </fieldset>
+
+    <!-- 2. ZOOM REGION -->
+    <fieldset>
+      <legend>2. Zoom Region (optional)</legend>
+      <p class="helper">Define clickable polygon area on current level.</p>
+
+      <div style="margin-bottom: 16px;">
+        <button type="button" id="startPolygonBtn">Start Polygon</button>
+        <button type="button" id="acceptPolygonBtn" disabled>Accept Points</button>
+        <button type="button" id="clearBtn">Clear</button>
+        <button type="button" id="copyBtn">Copy Coordinates</button>
+      </div>
+
+      <label for="points">Polygon coordinates</label>
+      <textarea id="points" name="points" rows="4" placeholder="e.g. 100,200 300,150 450,300 200,500 100,200"></textarea>
+      <small>Format: space-separated x1,y1 x2,y2 ... (paste from picker above)</small>
+
+      <label for="nextLevel">Zooms to level</label>
+      <input type="number" id="nextLevel" name="nextLevel" min="0" placeholder="e.g. 4" />
+      <small>Leave empty if not a zoom trigger area</small>
+    </fieldset>
+
+    <!-- 3. INTERACTIVE OBJECT -->
+    <fieldset>
+      <legend>3. Interactive Object / Marker (optional)</legend>
+      <p class="helper">Add something clickable on the map (marker, icon, NPC, item…)</p>
+
+      <label for="objectType">Object type</label>
+      <select id="objectType" name="objectType">
+        <option value="">— None —</option>
+        <option value="marker">Simple marker (gold circle)</option>
+        <option value="icon">Image icon / symbol</option>
+        <option value="npc">NPC / character</option>
+        <option value="collectible">Collectible / item</option>
+      </select>
+
+      <div id="objectFields" style="display:none;">
+        <label for="objectPoints">Position (x,y) <span style="color:#e11d48;">*</span></label>
+        <input type="text" id="objectPoints" name="objectPoints" placeholder="e.g. 340,520" />
+
+        <label for="objName">Name / Title</label>
+        <input type="text" id="objName" name="objName" placeholder="Ancient Lava Shrine" />
+
+        <label for="objDesc">Description / Dialog / Info</label>
+        <textarea id="objDesc" name="objDesc" rows="3" placeholder="A mysterious shrine that glows at night..."></textarea>
+
+        <label for="objImageFile">Select object image</label>
+        <input type="file" id="objImageFile" accept="image/*" />
+
+        <div class="preview-container">
+          <img id="objPreview" style="display:none;" alt="Preview" />
+        </div>
+
+        <label for="objImage">GitHub object image path</label>
+        <input type="text" id="objImage" name="objImage" placeholder="images/icons/shrine.png" />
+      </div>
+    </fieldset>
+
+    <button type="submit">Save to Google Sheet</button>
   </form>
 
-  <div class="note">
-    <strong>Quick reminder</strong><br>
-    • Upload the map image to GitHub first (images/ folder).<br>
-    • After saving, hard-refresh your game page to see the new level.<br>
-    • To make it zoomable, add a region on an existing level pointing to this new level number.
+  <div id="successMessage" style="display:none; margin:32px 0; padding:20px; background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0; border-radius:10px; text-align:center;">
+    <strong>✓ Saved successfully!</strong><br><br>
+    <a href="index.html">Add another</a> • <a href="https://guerillagardeningkzn-design.github.io/hawaii/" target="_blank">View map</a>
   </div>
+
+  <script>
+    // =============================================
+    // LOAD & PREVIEW IMAGE
+    // =============================================
+    const imageUrlInput = document.getElementById('imageUrl');
+    const mapImg = document.getElementById('mapImg');
+    const mapCanvas = document.getElementById('mapCanvas');
+    const ctx = mapCanvas.getContext('2d');
+    let imgLoaded = false;
+
+    function loadPreview(url) {
+      mapImg.src = url;
+      mapImg.onload = () => {
+        imgLoaded = true;
+        mapImg.style.display = 'block';
+        mapCanvas.width = mapImg.clientWidth;
+        mapCanvas.height = mapImg.clientHeight;
+        mapCanvas.style.display = 'block';
+      };
+    }
+
+    imageUrlInput.addEventListener('input', () => {
+      const url = imageUrlInput.value.trim();
+      if (url) loadPreview(url);
+    });
+
+    document.getElementById('mapImageFile').addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = ev => loadPreview(ev.target.result);
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // =============================================
+    // POLYGON POINT CREATOR FOR ZOOM REGION
+    // =============================================
+    let points = [];
+    let isDrawingPolygon = false;
+
+    document.getElementById('startPolygonBtn').addEventListener('click', () => {
+      if (!imgLoaded) {
+        alert('Load a preview image first.');
+        return;
+      }
+      isDrawingPolygon = true;
+      points = [];
+      ctx.clearRect(0, 0, mapCanvas.width, mapCanvas.height);
+      document.getElementById('coordsOutput').value = '';
+      document.getElementById('acceptPolygonBtn').disabled = false;
+      alert('Click points on preview. Click "Accept Points" when done.');
+    });
+
+    mapCanvas.addEventListener('click', function(e) {
+      if (!isDrawingPolygon) return;
+      e.preventDefault();
+      const rect = mapCanvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      points.push({x, y});
+
+      // Draw point and lines
+      ctx.fillStyle = 'red';
+      ctx.beginPath();
+      ctx.arc(x, y, 5, 0, Math.PI * 2);
+      ctx.fill();
+
+      if (points.length > 1) {
+        ctx.beginPath();
+        ctx.moveTo(points[points.length - 2].x, points[points.length - 2].y);
+        ctx.lineTo(x, y);
+        ctx.strokeStyle = 'red';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+
+      updateCoordsDisplay();
+    });
+
+    document.getElementById('acceptPolygonBtn').addEventListener('click', () => {
+      if (points.length < 3) {
+        alert('Need at least 3 points for a polygon.');
+        return;
+      }
+
+      // Close polygon
+      ctx.beginPath();
+      ctx.moveTo(points[points.length - 1].x, points[points.length - 1].y);
+      ctx.lineTo(points[0].x, points[0].y);
+      ctx.strokeStyle = 'blue';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      isDrawingPolygon = false;
+      document.getElementById('acceptPolygonBtn').disabled = true;
+      updateCoordsDisplay();
+    });
+
+    function updateCoordsDisplay() {
+      const coords = points.map(p => `${Math.round(p.x)},${Math.round(p.y)}`).join(' ');
+      document.getElementById('coordsOutput').value = coords;
+    }
+
+    document.getElementById('clearBtn').addEventListener('click', () => {
+      points = [];
+      isDrawingPolygon = false;
+      ctx.clearRect(0, 0, mapCanvas.width, mapCanvas.height);
+      document.getElementById('coordsOutput').value = '';
+      document.getElementById('acceptPolygonBtn').disabled = true;
+    });
+
+    document.getElementById('copyBtn').addEventListener('click', () => {
+      const text = document.getElementById('coordsOutput').value;
+      if (text) {
+        navigator.clipboard.writeText(text).then(() => {
+          alert('Coordinates copied! Paste into "Polygon coordinates" field.');
+        });
+      }
+    });
+
+    // =============================================
+    // SHOW/HIDE OBJECT FIELDS
+    // =============================================
+    document.getElementById('objectType').addEventListener('change', function() {
+      document.getElementById('objectFields').style.display = this.value ? 'block' : 'none';
+    });
+
+    // =============================================
+    // BUILD OBJECT PROPERTIES JSON BEFORE SUBMIT
+    // =============================================
+    document.getElementById('mapForm').addEventListener('submit', function(e) {
+      const type = document.getElementById('objectType').value;
+      if (!type) return;
+
+      const props = {
+        name: document.getElementById('objName').value.trim() || undefined,
+        desc: document.getElementById('objDesc').value.trim() || undefined,
+        image: document.getElementById('objImage').value.trim() || undefined
+      };
+      Object.keys(props).forEach(k => !props[k] && delete props[k]);
+
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'objectProperties';
+      input.value = JSON.stringify(props);
+      this.appendChild(input);
+    });
+
+    // =============================================
+    // SHOW SUCCESS MESSAGE AFTER REDIRECT
+    // =============================================
+    if (window.location.search.includes('success')) {
+      document.getElementById('successMessage').style.display = 'block';
+    }
+  </script>
 
 </body>
 </html>
