@@ -182,9 +182,53 @@
     // =============================================
     //   SHOW/HIDE OBJECT FIELDS
     // =============================================
-    document.getElementById('objectType').addEventListener('change', function() {
-      document.getElementById('objectFields').style.display = this.value ? 'block' : 'none';
-    });
+    // SHOW/HIDE OBJECT FIELDS with required toggle
+const objectTypeSelect = document.getElementById('objectType');
+const objectFields = document.getElementById('objectFields');
+const objectPointsInput = document.getElementById('objectPoints');
+
+function toggleObjectFields() {
+  const isVisible = !!objectTypeSelect.value;
+  objectFields.style.display = isVisible ? 'block' : 'none';
+
+  // Toggle required attribute
+  if (isVisible) {
+    objectPointsInput.setAttribute('required', '');
+  } else {
+    objectPointsInput.removeAttribute('required');
+  }
+}
+
+// Initial check on load
+toggleObjectFields();
+
+// Update on selection change
+objectTypeSelect.addEventListener('change', toggleObjectFields);
+
+// Build objectProperties JSON before submit (unchanged)
+document.getElementById('mapForm').addEventListener('submit', function(e) {
+  const type = objectTypeSelect.value;
+  if (!type) return;
+
+  const props = {
+    name: document.getElementById('objName').value.trim() || undefined,
+    desc: document.getElementById('objDesc').value.trim() || undefined,
+    image: document.getElementById('objImage').value.trim() || undefined
+  };
+  Object.keys(props).forEach(k => !props[k] && delete props[k]);
+
+  const input = document.createElement('input');
+  input.type = 'hidden';
+  input.name = 'objectProperties';
+  input.value = JSON.stringify(props);
+  this.appendChild(input);
+});
+
+// Show success message after redirect
+if (window.location.search.includes('success')) {
+  document.getElementById('successMessage').style.display = 'block';
+  document.getElementById('successMessage').scrollIntoView({ behavior: 'smooth' });
+}
 
     // =============================================
     //   COORDINATE PICKER – CLICK ON MAP PREVIEW
