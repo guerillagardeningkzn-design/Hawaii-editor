@@ -304,145 +304,263 @@
     });
 
     // ────────────────────────────────────────────────
-    // SHAPE DRAWING LOGIC (Rectangle, Polygon, Circle)
-    // ────────────────────────────────────────────────
-    let mode = 'rectangle';
-    let points = [];
-    let isDrawing = false;
-    let startX, startY;
+// SHAPE DRAWING / POINT SELECTION LOGIC
+// ────────────────────────────────────────────────
 
-    document.querySelectorAll('.mode-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        mode = btn.dataset.mode;
-        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        clearCanvas();
+let currentMode = 'rectangle';       // rectangle | polygon | circle
+let isDrawing = false;
+let startPos = { x: 0, y: 0 };
+let currentPoints = [];               // array of {x,y}
+let tempEndPos = null;                // for live preview during drag
+
+const canvas = document.getElementById('mapCanvas');
+const ctx = canvas.getContext('2d');
+const coordsOutput = document.getElementById('coordsOutput');
+
+// ─── Mode switching ────────────────────────────────────────
+document.querySelectorAll('.mode-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentMode = btn.dataset.mode;
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    resetDrawing();
+  });
+});
+
+function resetDrawing() {
+  isDrawing = false;
+  currentPoints = [];
+  tempEndPos = null;
+  clearCanvasOverlay();
+  coordsOutput.value = '';
+}
+
+// ─── Canvas clearing ───────────────────────────────────────
+function clearCanvasOverlay() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+// ─── Get canvas coordinates (mouse or touch) ───────────────
+function getCanvasPos(e) {
+  const rect = canvas.getBoundingClientRect();
+  const clientX = e.clientX ?? e.touches?.[0]?.clientX;
+  const clientY = e.clientY ?? e.touches?.[0]?.clientY;
+  return {
+    x: clientX - rect.left,
+    y: clientY - rect.top
+  };
+}
+
+// ─── Start drawing ─────────────────────────────────────────
+function onPointerDown(e) {
+  if (!imgLoaded) return;
+  e.preventDefault();
+
+  const pos = getCanvasPos(e);
+  startPos = pos;
+
+  if (currentMode === 'polygon') {
+    // Add new point on each click in polygon mode
+    currentPoints.push(pos);
+    drawLivePreview();
+  } else {
+    // rectangle & circle start with drag
+    isDrawing = true;
+    currentPoints = [];
+  }
+}
+
+// ─── During movement (live preview) ────────────────────────
+function onPointerMove(e) {
+  if (!isDrawing && currentMode === 'polygon') return;
+  e.preventDefault();
+
+  const pos = getCanvasPos(e);
+  tempEndPos = pos;
+
+  drawLivePreview();
+}
+
+// ─── End drawing / finalize shape ──────────────────────────
+function onPointerUp(e) {
+  if (!isDrawing && currentMode !== 'polygon') return;
+  e.preventDefault();
+
+  const pos = getCanvasPos(e);
+
+  if (currentMode === 'rectangle') {
+    const x1 = Math.min(startPos.x, pos.x);
+    const y1 = Math.min(startPos.y, pos.y);
+    const x2 = Math.max(startPos.x, pos.x);
+    const y2 = Math.max(startPos.y, pos.y);
+
+    currentPoints = [
+      {x: x1, y: y1},
+      {x: x2, y: y1},
+      {x: x2, y: y2},
+      {x: x1, y: y2},
+      {x: x1, y: y1}   // closed
+    ];
+    isDrawing = false;
+  }
+  else if (currentMode === 'circle') {
+    const radius = Math.hypot(pos.x - startPos.x, pos.y - startPos.y);
+    currentPoints = [];
+    const steps = 32; // smoother
+    for (let i = 0; i <= steps; i++) {
+      const angle = (i / steps) * Math.PI * 2;
+      currentPoints.push({
+        x: startPos.x + radius * Math.cos(angle),
+        y: startPos.y + radius * Math.sin(angle)
       });
-    });
+    }
+    isDrawing = false;
+  }
+  // polygon: continues until user explicitly finishes
 
-    function clearCanvas() {
-      ctx.clearRect(0, 0, mapCanvas.width, mapCanvas.height);
-      points = [];
-      isDrawing = false;
-      document.getElementById('coordsOutput').value = '';
+  drawFinalShape();
+  updateOutputCoords();
+}
+
+// ─── Polygon finishing methods ─────────────────────────────
+function finishPolygon() {
+  if (currentMode !== 'polygon' || currentPoints.length < 3) return;
+
+  // Close shape by connecting back to first point
+  currentPoints.push({ ...currentPoints[0] });
+
+  drawFinalShape();
+  updateOutputCoords();
+  // Optional: reset for next shape
+  // resetDrawing();
+}
+
+// Double-click = finish polygon
+canvas.addEventListener('dblclick', (e) => {
+  if (currentMode === 'polygon') {
+    finishPolygon();
+  }
+});
+
+// Enter key = finish polygon
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && currentMode === 'polygon' && currentPoints.length >= 2) {
+    finishPolygon();
+  }
+});
+
+// ─── Drawing live preview ──────────────────────────────────
+function drawLivePreview() {
+  clearCanvasOverlay();
+
+  if (currentMode === 'rectangle' && isDrawing) {
+    const w = tempEndPos.x - startPos.x;
+    const h = tempEndPos.y - startPos.y;
+    ctx.strokeStyle = 'red';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6, 4]);
+    ctx.strokeRect(startPos.x, startPos.y, w, h);
+    ctx.setLineDash([]);
+  }
+  else if (currentMode === 'circle' && isDrawing) {
+    const radius = Math.hypot(tempEndPos.x - startPos.x, tempEndPos.y - startPos.y);
+    ctx.beginPath();
+    ctx.arc(startPos.x, startPos.y, radius, 0, Math.PI * 2);
+    ctx.strokeStyle = 'red';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6, 4]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  else if (currentMode === 'polygon' && currentPoints.length > 0) {
+    ctx.beginPath();
+    ctx.moveTo(currentPoints[0].x, currentPoints[0].y);
+
+    for (let i = 1; i < currentPoints.length; i++) {
+      ctx.lineTo(currentPoints[i].x, currentPoints[i].y);
     }
 
-    document.getElementById('clearBtn').addEventListener('click', clearCanvas);
-
-    function getCoords(e) {
-      const rect = mapCanvas.getBoundingClientRect();
-      return {
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top
-      };
+    if (tempEndPos) {
+      ctx.lineTo(tempEndPos.x, tempEndPos.y);
     }
 
-    function startDraw(e) {
-      if (!imgLoaded) return;
-      e.preventDefault();
-      const pos = getCoords(e);
-      startX = pos.x;
-      startY = pos.y;
-      isDrawing = true;
-      points = [{x: pos.x, y: pos.y}];
+    ctx.strokeStyle = 'red';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6, 4]);
+    ctx.stroke();
+    ctx.setLineDash([]);
 
-      if (mode === 'polygon') {
-        drawPoint(pos.x, pos.y);
-      }
-    }
+    // Show points
+    currentPoints.forEach(p => drawDot(p.x, p.y, 'red'));
+    if (tempEndPos) drawDot(tempEndPos.x, tempEndPos.y, 'orange');
+  }
+}
 
-    function draw(e) {
-      if (!isDrawing) return;
-      e.preventDefault();
-      const pos = getCoords(e);
+function drawFinalShape() {
+  clearCanvasOverlay();
+  if (currentPoints.length < 3) return;
 
-      ctx.clearRect(0, 0, mapCanvas.width, mapCanvas.height);
+  ctx.beginPath();
+  ctx.moveTo(currentPoints[0].x, currentPoints[0].y);
+  for (let p of currentPoints) {
+    ctx.lineTo(p.x, p.y);
+  }
+  ctx.closePath();
 
-      if (mode === 'rectangle') {
-        const w = pos.x - startX;
-        const h = pos.y - startY;
-        ctx.strokeStyle = 'red';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(startX, startY, w, h);
-      } else if (mode === 'circle') {
-        const radius = Math.hypot(pos.x - startX, pos.y - startY);
-        ctx.beginPath();
-        ctx.arc(startX, startY, radius, 0, Math.PI * 2);
-        ctx.strokeStyle = 'red';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-      } else if (mode === 'polygon') {
-        ctx.beginPath();
-        ctx.moveTo(points[0].x, points[0].y);
-        for (let p of points) ctx.lineTo(p.x, p.y);
-        ctx.lineTo(pos.x, pos.y);
-        ctx.strokeStyle = 'red';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-      }
-    }
+  ctx.strokeStyle = '#0066ff';
+  ctx.lineWidth = 3;
+  ctx.stroke();
 
-    function finishDraw(e) {
-      if (!isDrawing) return;
-      isDrawing = false;
-      const pos = getCoords(e);
+  // Optional: show vertices
+  currentPoints.forEach(p => drawDot(p.x, p.y, '#0066ff'));
+}
 
-      if (mode === 'rectangle') {
-        const x1 = Math.min(startX, pos.x);
-        const y1 = Math.min(startY, pos.y);
-        const x2 = Math.max(startX, pos.x);
-        const y2 = Math.max(startY, pos.y);
-        points = [
-          {x: x1, y: y1}, {x: x2, y: y1},
-          {x: x2, y: y2}, {x: x1, y: y2}
-        ];
-      } else if (mode === 'circle') {
-        const radius = Math.hypot(pos.x - startX, pos.y - startY);
-        points = [];
-        for (let i = 0; i < 8; i++) {
-          const angle = (i / 8) * Math.PI * 2;
-          points.push({
-            x: startX + radius * Math.cos(angle),
-            y: startY + radius * Math.sin(angle)
-          });
-        }
-      } else if (mode === 'polygon') {
-        points.push({x: pos.x, y: pos.y});
-      }
+function drawDot(x, y, color = 'red') {
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.arc(x, y, 5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = 'white';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+}
 
-      const coords = points.map(p => `${Math.round(p.x)},${Math.round(p.y)}`).join(' ');
-      document.getElementById('coordsOutput').value = coords;
+// ─── Output coordinates ────────────────────────────────────
+function updateOutputCoords() {
+  if (currentPoints.length < 3) {
+    coordsOutput.value = '';
+    return;
+  }
 
-      // Draw final shape in blue
-      ctx.clearRect(0, 0, mapCanvas.width, mapCanvas.height);
-      ctx.beginPath();
-      ctx.moveTo(points[0].x, points[0].y);
-      for (let p of points) ctx.lineTo(p.x, p.y);
-      ctx.closePath();
-      ctx.strokeStyle = 'blue';
-      ctx.lineWidth = 3;
-      ctx.stroke();
-    }
+  const coords = currentPoints
+    .map(p => `${Math.round(p.x)},${Math.round(p.y)}`)
+    .join(' ');
 
-    // Event listeners
-    mapCanvas.addEventListener('mousedown', startDraw);
-    mapCanvas.addEventListener('mousemove', draw);
-    mapCanvas.addEventListener('mouseup', finishDraw);
-    mapCanvas.addEventListener('mouseleave', finishDraw);
+  coordsOutput.value = coords;
+}
 
-    // Touch support
-    mapCanvas.addEventListener('touchstart', e => { e.preventDefault(); startDraw(e.touches[0]); });
-    mapCanvas.addEventListener('touchmove', e => { e.preventDefault(); draw(e.touches[0]); });
-    mapCanvas.addEventListener('touchend', finishDraw);
+// ─── Event listeners ───────────────────────────────────────
+canvas.addEventListener('mousedown', onPointerDown);
+canvas.addEventListener('mousemove', onPointerMove);
+canvas.addEventListener('mouseup',   onPointerUp);
+canvas.addEventListener('mouseleave', onPointerUp);
 
-    document.getElementById('copyBtn').addEventListener('click', () => {
-      const text = document.getElementById('coordsOutput').value;
-      if (text) {
-        navigator.clipboard.writeText(text).then(() => {
-          alert('Coordinates copied! Paste into "Polygon coordinates" field.');
-        });
-      }
-    });
+// Touch support
+canvas.addEventListener('touchstart', e => { e.preventDefault(); onPointerDown(e); });
+canvas.addEventListener('touchmove',  e => { e.preventDefault(); onPointerMove(e); });
+canvas.addEventListener('touchend',   onPointerUp);
+
+// Buttons
+document.getElementById('clearBtn').addEventListener('click', resetDrawing);
+
+document.getElementById('copyBtn').addEventListener('click', () => {
+  const text = coordsOutput.value.trim();
+  if (text) {
+    navigator.clipboard.writeText(text)
+      .then(() => alert('Coordinates copied to clipboard!'))
+      .catch(() => alert('Failed to copy — please select and copy manually'));
+  }
+});
 
     // =============================================
     // SHOW/HIDE OBJECT FIELDS + REQUIRED TOGGLE
