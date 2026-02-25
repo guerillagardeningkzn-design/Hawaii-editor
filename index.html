@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hawaii Map Editor – Shape & Coord Picker</title>
+  <title>Hawaii Map Editor – Add Levels, Regions & Objects</title>
   <style>
     body { font-family: Arial, sans-serif; max-width: 720px; margin: 30px auto; padding: 20px; background: #f8f9fa; }
     h1 { text-align: center; color: #1a5276; }
@@ -19,6 +19,7 @@
     #mapCanvas { position: absolute; top: 0; left: 0; }
     #coordsOutput { width: 100%; height: 80px; margin-top: 10px; font-family: monospace; resize: vertical; }
     .helper { color: #555; font-size: 0.95rem; margin-top: 6px; }
+    #successMessage { display: none; margin: 32px 0; padding: 20px; background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; border-radius: 10px; text-align: center; }
   </style>
 </head>
 <body>
@@ -59,27 +60,78 @@
 </fieldset>
 
 <form id="mapForm" action="https://script.google.com/macros/s/AKfycbzK4d2__PMlMrJKjV_U1IqnauUFar1YCdVrPaFfmGbqHNFyOep-BppaNLUVKSdRqy0/exec" method="POST">
-  <!-- Your existing form fields here -->
-  <!-- ... level, imageUrl, points, nextLevel, object type, etc. ... -->
 
+  <!-- 1. LEVEL & MAIN MAP IMAGE -->
   <fieldset>
-    <legend>Zoom Region (paste coordinates here)</legend>
+    <legend>1. Level & Main Map Image</legend>
+    <label for="level">Level number <span style="color:#e11d48;">*</span></label>
+    <input type="number" id="level" name="level" min="0" required placeholder="Examples: 0 = main island, 1 = gulf coast, etc." />
+    <small>Required — whole number only</small>
+
+    <label for="imageUrl">GitHub image path</label>
+    <input type="text" id="imageUrl" name="imageUrl" placeholder="images/volcano-peak.jpg" />
+    <small>Used for background and shape picker preview</small>
+
+    <label for="mapImageFile">Select local image file (optional)</label>
+    <input type="file" id="mapImageFile" accept="image/*" />
+
+    <div class="preview-container">
+      <img id="mapPreview" style="display:none;" alt="Preview" />
+    </div>
+  </fieldset>
+
+  <!-- 2. ZOOM REGION -->
+  <fieldset>
+    <legend>2. Zoom Region (paste coordinates here)</legend>
     <label for="points">Polygon coordinates</label>
-    <textarea id="points" name="points" rows="4" placeholder="Paste from picker above"></textarea>
+    <textarea id="points" name="points" rows="4" placeholder="Paste from shape picker above"></textarea>
     <small>Format: x1,y1 x2,y2 x3,y3 ... (space separated)</small>
 
     <label for="nextLevel">Zooms to level</label>
-    <input type="number" id="nextLevel" name="nextLevel" placeholder="e.g. 4" />
-
-    <!-- ... rest of form: object type, name, desc, etc. ... -->
-    <button type="submit">Save</button>
+    <input type="number" id="nextLevel" name="nextLevel" min="0" placeholder="e.g. 4" />
+    <small>Leave empty if not a zoom trigger</small>
   </fieldset>
+
+  <!-- 3. INTERACTIVE OBJECT -->
+  <fieldset>
+    <legend>3. Interactive Object / Marker (optional)</legend>
+    <label for="objectType">Object type</label>
+    <select id="objectType" name="objectType">
+      <option value="">— None —</option>
+      <option value="marker">Simple marker (gold circle)</option>
+      <option value="icon">Image icon / symbol</option>
+      <option value="npc">NPC / character</option>
+      <option value="collectible">Collectible / item</option>
+    </select>
+
+    <div id="objectFields" style="display:none;">
+      <label for="objectPoints">Position (x,y) <span style="color:#e11d48;">*</span></label>
+      <input type="text" id="objectPoints" name="objectPoints" placeholder="e.g. 340,520 (or click on preview)" />
+
+      <label for="objName">Name / Title</label>
+      <input type="text" id="objName" name="objName" placeholder="Ancient Lava Shrine" />
+
+      <label for="objDesc">Description / Dialog / Info</label>
+      <textarea id="objDesc" name="objDesc" rows="3" placeholder="A mysterious shrine that glows at night..."></textarea>
+
+      <label for="objImageFile">Select object image</label>
+      <input type="file" id="objImageFile" accept="image/*" />
+
+      <div class="preview-container">
+        <img id="objPreview" style="display:none;" alt="Preview" />
+      </div>
+
+      <label for="objImage">GitHub object image path</label>
+      <input type="text" id="objImage" name="objImage" placeholder="images/icons/shrine.png" />
+    </div>
+  </fieldset>
+
+  <button type="submit">Save to Google Sheet</button>
 </form>
 
-<!-- Success message -->
 <div id="successMessage" style="display:none; margin:32px 0; padding:20px; background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0; border-radius:10px; text-align:center;">
   <strong>✓ Saved successfully!</strong><br><br>
-  <a href="index.html">Add another</a> • <a href="https://guerillagardeningkzn-design.github.io/hawaii/" target="_blank">View map</a>
+  <a href="index.html">Add another</a> • <a href="https://guerillagardeningkzn-design.github.io/hawaii/" target="_blank">View map</a> • <a href="YOUR_SHEET_LINK" target="_blank">Open Sheet</a>
 </div>
 
 <script>
@@ -237,7 +289,7 @@ function finishDraw(e) {
   ctx.stroke();
 }
 
-// Event listeners
+// Event listeners for mouse
 mapCanvas.addEventListener('mousedown', startDraw);
 mapCanvas.addEventListener('mousemove', draw);
 mapCanvas.addEventListener('mouseup', finishDraw);
@@ -256,6 +308,56 @@ document.getElementById('copyBtn').addEventListener('click', () => {
     });
   }
 });
+
+// =============================================
+// SHOW/HIDE OBJECT FIELDS + REQUIRED TOGGLE
+// =============================================
+const objectType = document.getElementById('objectType');
+const objectFields = document.getElementById('objectFields');
+const objectPointsInput = document.getElementById('objectPoints');
+
+function toggleObjectFields() {
+  const isActive = !!objectType.value;
+  objectFields.style.display = isActive ? 'block' : 'none';
+
+  if (isActive) {
+    objectPointsInput.setAttribute('required', '');
+  } else {
+    objectPointsInput.removeAttribute('required');
+  }
+}
+
+toggleObjectFields();
+objectType.addEventListener('change', toggleObjectFields);
+
+// =============================================
+// BUILD OBJECT PROPERTIES JSON BEFORE SUBMIT
+// =============================================
+document.getElementById('mapForm').addEventListener('submit', function(e) {
+  const type = objectType.value;
+  if (!type) return;
+
+  const props = {
+    name: document.getElementById('objName').value.trim() || undefined,
+    desc: document.getElementById('objDesc').value.trim() || undefined,
+    image: document.getElementById('objImage').value.trim() || undefined
+  };
+  Object.keys(props).forEach(k => !props[k] && delete props[k]);
+
+  const input = document.createElement('input');
+  input.type = 'hidden';
+  input.name = 'objectProperties';
+  input.value = JSON.stringify(props);
+  this.appendChild(input);
+});
+
+// =============================================
+// SHOW SUCCESS MESSAGE AFTER REDIRECT
+// =============================================
+if (window.location.search.includes('success')) {
+  document.getElementById('successMessage').style.display = 'block';
+  document.getElementById('successMessage').scrollIntoView({ behavior: 'smooth' });
+}
 </script>
 
 </body>
