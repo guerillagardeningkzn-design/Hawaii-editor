@@ -1,386 +1,423 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hawaii Map Editor</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Game Content Editor</title>
   <style>
-    body {
-      font-family: Arial, Helvetica, sans-serif;
-      max-width: 680px;
-      margin: 40px auto;
-      padding: 0 20px;
-      background: #f5f9fc;
-      color: #333;
-      line-height: 1.6;
+    /* Your existing styles – keep them */
+    :root {
+      --bg: #0f0f17;
+      --surface: #1e293b;
+      --text: #e0e0ff;
+      --text-muted: #94a3b8;
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --accent: #fbbf24;
+      --success: #22c55e;
+      --danger: #ef4444;
     }
-    h1 {
-      text-align: center;
-      color: #0c4a6e;
-      margin-bottom: 12px;
-    }
-    .intro {
-      text-align: center;
-      color: #555;
-      margin-bottom: 32px;
-    }
-    fieldset {
-      margin-bottom: 32px;
-      padding: 20px;
-      border: 1px solid #d1d9e0;
-      border-radius: 10px;
-      background: white;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    }
-    legend {
-      font-weight: bold;
-      color: #0c4a6e;
-      padding: 0 12px;
-      font-size: 1.2rem;
-    }
-    label {
-      display: block;
-      margin: 18px 0 6px;
-      font-weight: 600;
-      color: #1f2937;
-    }
-    input[type="text"],
-    input[type="number"],
-    input[type="file"],
-    textarea,
-    select {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid #9ca3af;
-      border-radius: 6px;
-      font-size: 1rem;
-      box-sizing: border-box;
-    }
-    textarea {
-      min-height: 90px;
-      resize: vertical;
-    }
-    .helper, small {
-      display: block;
-      margin-top: 6px;
-      color: #4b5563;
-      font-size: 0.92rem;
-    }
-    .helper strong {
-      color: #1e40af;
-    }
-    .warning {
-      color: #b45309;
-      font-weight: 500;
-    }
-    .preview-container {
-      margin: 12px 0;
-      text-align: center;
-      position: relative;
-      border: 2px solid #ccc;
-      display: inline-block;
-      background: #eee;
-      cursor: crosshair;
-    }
-    .preview-container img {
-      display: block;
-      max-width: 100%;
-      height: auto;
-    }
-    #mapCanvas {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-    }
-    button {
-      padding: 10px 20px;
-      margin: 10px 5px 0 0;
-      background: #28a745;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #218838;
-    }
-    #successMessage {
-      display: none;
-      margin: 32px 0;
-      padding: 20px;
-      background: #ecfdf5;
-      color: #065f46;
-      border: 1px solid #a7f3d0;
-      border-radius: 10px;
-      text-align: center;
-      font-size: 1.1rem;
-    }
-    #successMessage a {
-      color: #047857;
-      font-weight: bold;
-      text-decoration: underline;
-    }
+    body { margin: 0; font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 24px; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    h1 { margin: 0 0 16px; color: #a5b4fc; text-align: center; }
+    .tabs { display: flex; border-bottom: 1px solid #334155; margin-bottom: 24px; overflow-x: auto; padding-bottom: 4px; }
+    .tab-button { padding: 12px 28px; background: transparent; border: none; color: var(--text-muted); font-size: 1.05rem; cursor: pointer; white-space: nowrap; transition: all 0.15s; }
+    .tab-button:hover { color: var(--text); }
+    .tab-button.active { color: #a5b4fc; border-bottom: 3px solid var(--primary); font-weight: 600; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .controls { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 20px; }
+    .input-group { display: flex; flex-direction: column; min-width: 220px; flex: 1; }
+    label { margin-bottom: 6px; font-weight: 500; color: #cbd5e1; }
+    input, textarea, select { padding: 10px 12px; border-radius: 8px; border: 1px solid #4b5563; background: #111827; color: var(--text); font-size: 1rem; }
+    textarea { min-height: 90px; resize: vertical; }
+    button { padding: 10px 20px; border: none; border-radius: 8px; font-size: 1rem; font-weight: 500; cursor: pointer; transition: all 0.15s; height: 40px; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover:not(:disabled) { background: var(--primary-dark); }
+    .btn-secondary { background: #475569; color: white; }
+    .btn-secondary:hover:not(:disabled) { background: #334155; }
+    .btn-clear { background: var(--danger); color: white; }
+    .btn-clear:hover:not(:disabled) { background: #dc2626; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    #status { padding: 12px 16px; border-radius: 8px; background: #111827; border: 1px solid #334155; font-family: monospace; min-height: 1.4em; }
+    .canvas-wrapper { position: relative; background: #0f172a; border-radius: 12px; overflow: hidden; border: 1px solid #334155; margin: 16px 0; max-width: 100%; overflow-x: auto; }
+    canvas { display: block; touch-action: none; }
+    .point-label { position: absolute; color: #fbbf24; font-size: 11px; font-weight: bold; pointer-events: none; transform: translate(-50%, -150%); text-shadow: 0 0 6px black, 1px 1px 3px black; }
+    pre#result { background: #111827; padding: 16px; border-radius: 8px; border: 1px solid #334155; white-space: pre-wrap; font-size: 0.92rem; }
+    table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+    th, td { padding: 10px; border: 1px solid #334155; text-align: left; }
+    th { background: #111827; }
   </style>
 </head>
 <body>
 
-  <h1>Hawaii Map Editor</h1>
-  <p class="intro">
-    Add new maps, zoom regions or interactive objects to your Google Sheet.<br>
-    Use the preview to draw zoom regions by clicking points.
-  </p>
+<div class="container">
+  <h1>Game Content Editor</h1>
 
-  <form id="mapForm" action="https://script.google.com/macros/s/AKfycbzK4d2__PMlMrJKjV_U1IqnauUFar1YCdVrPaFfmGbqHNFyOep-BppaNLUVKSdRqy0/exec" method="POST">
-
-    <!-- 1. LEVEL & MAP IMAGE -->
-    <fieldset>
-      <legend>1. Level & Map Image</legend>
-
-      <label for="level">Level number <span style="color:#e11d48;">*</span></label>
-      <input type="number" id="level" name="level" min="0" required placeholder="e.g. 0 = main island, 3 = volcano peak" />
-      <small>Required — whole number only</small>
-
-      <label for="imageUrl">GitHub image path</label>
-      <input type="text" id="imageUrl" name="imageUrl" placeholder="images/volcano-peak.jpg" />
-      <small>
-        <strong>Only required when:</strong> creating a new level or changing background.<br>
-        <strong>Leave empty when:</strong> adding regions/objects to existing level.
-      </small>
-
-      <label for="mapImageFile">Select local image (for preview)</label>
-      <input type="file" id="mapImageFile" accept="image/*" />
-
-      <div class="preview-container" id="previewContainer">
-        <img id="mapImg" alt="Map preview for drawing zoom region" style="display:none;">
-        <canvas id="mapCanvas" style="display:none;"></canvas>
-      </div>
-
-      <div class="helper">
-        <strong>Zoom region picker:</strong> Load preview → click "Start Polygon" → click points → "Accept Points" → copy → paste below.
-      </div>
-    </fieldset>
-
-    <!-- 2. ZOOM REGION -->
-    <fieldset>
-      <legend>2. Zoom Region (optional)</legend>
-      <p class="helper">Define clickable polygon area on current level.</p>
-
-      <div style="margin-bottom: 16px;">
-        <button type="button" id="startPolygonBtn">Start Polygon</button>
-        <button type="button" id="acceptPolygonBtn" disabled>Accept Points</button>
-        <button type="button" id="clearBtn">Clear</button>
-        <button type="button" id="copyBtn">Copy Coordinates</button>
-      </div>
-
-      <label for="points">Polygon coordinates</label>
-      <textarea id="points" name="points" rows="4" placeholder="e.g. 100,200 300,150 450,300 200,500 100,200"></textarea>
-      <small>Format: space-separated x1,y1 x2,y2 ... (paste from picker above)</small>
-
-      <label for="nextLevel">Zooms to level</label>
-      <input type="number" id="nextLevel" name="nextLevel" min="0" placeholder="e.g. 4" />
-      <small>Leave empty if not a zoom trigger area</small>
-    </fieldset>
-
-    <!-- 3. INTERACTIVE OBJECT -->
-    <fieldset>
-      <legend>3. Interactive Object / Marker (optional)</legend>
-      <p class="helper">Add something clickable on the map (marker, icon, NPC, item…)</p>
-
-      <label for="objectType">Object type</label>
-      <select id="objectType" name="objectType">
-        <option value="">— None —</option>
-        <option value="marker">Simple marker (gold circle)</option>
-        <option value="icon">Image icon / symbol</option>
-        <option value="npc">NPC / character</option>
-        <option value="collectible">Collectible / item</option>
-      </select>
-
-      <div id="objectFields" style="display:none;">
-        <label for="objectPoints">Position (x,y) <span style="color:#e11d48;">*</span></label>
-        <input type="text" id="objectPoints" name="objectPoints" placeholder="e.g. 340,520" />
-
-        <label for="objName">Name / Title</label>
-        <input type="text" id="objName" name="objName" placeholder="Ancient Lava Shrine" />
-
-        <label for="objDesc">Description / Dialog / Info</label>
-        <textarea id="objDesc" name="objDesc" rows="3" placeholder="A mysterious shrine that glows at night..."></textarea>
-
-        <label for="objImageFile">Select object image</label>
-        <input type="file" id="objImageFile" accept="image/*" />
-
-        <div class="preview-container">
-          <img id="objPreview" style="display:none;" alt="Preview" />
-        </div>
-
-        <label for="objImage">GitHub object image path</label>
-        <input type="text" id="objImage" name="objImage" placeholder="images/icons/shrine.png" />
-      </div>
-    </fieldset>
-
-    <button type="submit">Save to Google Sheet</button>
-  </form>
-
-  <div id="successMessage" style="display:none; margin:32px 0; padding:20px; background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0; border-radius:10px; text-align:center;">
-    <strong>✓ Saved successfully!</strong><br><br>
-    <a href="index.html">Add another</a> • <a href="https://guerillagardeningkzn-design.github.io/hawaii/" target="_blank">View map</a>
+  <div class="tabs">
+    <button class="tab-button active" data-tab="hotspots">Hotspots / Touch Areas</button>
+    <button class="tab-button" data-tab="maps">Maps / Rooms</button>
+    <button class="tab-button" data-tab="entities">Entities / Objects</button>
+    <button class="tab-button" data-tab="transitions">Transitions</button>
+    <button class="tab-button" data-tab="preview">Preview & Export</button>
   </div>
 
-  <script>
-    // =============================================
-    // LOAD & PREVIEW IMAGE
-    // =============================================
-    const imageUrlInput = document.getElementById('imageUrl');
-    const mapImg = document.getElementById('mapImg');
-    const mapCanvas = document.getElementById('mapCanvas');
-    const ctx = mapCanvas.getContext('2d');
-    let imgLoaded = false;
+  <!-- Hotspots Tab -->
+  <div id="hotspots" class="tab-content active">
+    <div class="controls">
+      <div class="input-group">
+        <label for="mapSelect">Map / Room</label>
+        <select id="mapSelect">
+          <option value="">— select map —</option>
+        </select>
+      </div>
 
-    function loadPreview(url) {
-      mapImg.src = url;
-      mapImg.onload = () => {
-        imgLoaded = true;
-        mapImg.style.display = 'block';
-        mapCanvas.width = mapImg.clientWidth;
-        mapCanvas.height = mapImg.clientHeight;
-        mapCanvas.style.display = 'block';
-      };
+      <div class="input-group">
+        <label for="nameInput">Name</label>
+        <input type="text" id="nameInput" placeholder="e.g. Cellar Door, Old Hermit">
+      </div>
+
+      <div class="input-group">
+        <label for="descInput">Description</label>
+        <textarea id="descInput" placeholder="What happens here..."></textarea>
+      </div>
+
+      <div class="input-group" id="zoomTargetGroup" style="display:none;">
+        <label for="zoomTargetInput">Zoom To Map Image</label>
+        <input type="text" id="zoomTargetInput" placeholder="e.g. cellar.jpg">
+      </div>
+
+      <div class="input-group">
+        <label for="typeSelect">Type</label>
+        <select id="typeSelect">
+          <option value="">— select type —</option>
+          <option value="Map">Map (full scene transition)</option>
+          <option value="Marker">Marker</option>
+          <option value="NPC">NPC</option>
+          <option value="Pickup">Pickup</option>
+          <option value="zoom_to">Zoom To</option>
+        </select>
+      </div>
+
+      <div class="input-group">
+        <label for="imageInput">Background Image</label>
+        <input type="file" id="imageInput" accept="image/*">
+      </div>
+
+      <button id="clearBtn" class="btn-secondary" disabled>Clear Points</button>
+      <button id="saveBtn" class="btn-primary" disabled>Save Hotspot</button>
+    </div>
+
+    <div id="status">Load a background image to start</div>
+    <div class="canvas-wrapper">
+      <canvas id="canvas"></canvas>
+    </div>
+    <pre id="result">Save result will appear here...</pre>
+  </div>
+
+  <!-- Maps Tab -->
+  <div id="maps" class="tab-content">
+    <h2>Create New Map</h2>
+    <div class="controls">
+      <div class="input-group">
+        <label for="mapName">Map Name</label>
+        <input type="text" id="mapName" placeholder="e.g. Forest Clearing">
+      </div>
+      <div class="input-group">
+        <label for="mapBackground">Background Image</label>
+        <input type="file" id="mapBackground" accept="image/*">
+      </div>
+      <div class="input-group">
+        <label for="mapDesc">Description</label>
+        <textarea id="mapDesc" placeholder="Optional notes..."></textarea>
+      </div>
+      <button id="saveMapBtn" class="btn-primary">Save Map</button>
+    </div>
+
+    <h3>Existing Maps</h3>
+    <table id="mapsTable">
+      <thead>
+        <tr>
+          <th>MapID</th>
+          <th>Name</th>
+          <th>Background</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <!-- Placeholder tabs -->
+  <div id="entities" class="tab-content">
+    <h2>Entities / Objects</h2>
+    <p>Coming soon...</p>
+  </div>
+  <div id="transitions" class="tab-content">
+    <h2>Transitions & Portals</h2>
+    <p>Coming soon...</p>
+  </div>
+  <div id="preview" class="tab-content">
+    <h2>Preview & Export</h2>
+    <p>Coming soon...</p>
+  </div>
+</div>
+
+<script>
+// Tab switching + auto-load maps
+document.querySelectorAll('.tab-button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+    btn.classList.add('active');
+    const tabId = btn.dataset.tab;
+    const tabContent = document.getElementById(tabId);
+    tabContent.classList.add('active');
+
+    console.log(`Tab switched to: ${tabId}`);
+
+    if (tabId === "maps") {
+      console.log("Loading maps list...");
+      loadMaps();  // call immediately
     }
-
-    imageUrlInput.addEventListener('input', () => {
-      const url = imageUrlInput.value.trim();
-      if (url) loadPreview(url);
-    });
-
-    document.getElementById('mapImageFile').addEventListener('change', e => {
-      const file = e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = ev => loadPreview(ev.target.result);
-        reader.readAsDataURL(file);
-      }
-    });
-
-    // =============================================
-    // POLYGON POINT CREATOR FOR ZOOM REGION
-    // =============================================
-    let points = [];
-    let isDrawingPolygon = false;
-
-    document.getElementById('startPolygonBtn').addEventListener('click', () => {
-      if (!imgLoaded) {
-        alert('Load a preview image first.');
-        return;
-      }
-      isDrawingPolygon = true;
-      points = [];
-      ctx.clearRect(0, 0, mapCanvas.width, mapCanvas.height);
-      document.getElementById('points').value = '';
-      document.getElementById('acceptPolygonBtn').disabled = false;
-      alert('Click points on preview to define zoom area. Click "Accept Points" when done.');
-    });
-
-    mapCanvas.addEventListener('click', function(e) {
-      if (!isDrawingPolygon) return;
-      e.preventDefault();
-      const rect = mapCanvas.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-
-      points.push({x, y});
-
-      // Draw point and lines
-      ctx.fillStyle = 'red';
-      ctx.beginPath();
-      ctx.arc(x, y, 5, 0, Math.PI * 2);
-      ctx.fill();
-
-      if (points.length > 1) {
-        ctx.beginPath();
-        ctx.moveTo(points[points.length - 2].x, points[points.length - 2].y);
-        ctx.lineTo(x, y);
-        ctx.strokeStyle = 'red';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-      }
-    });
-
-    document.getElementById('acceptPolygonBtn').addEventListener('click', () => {
-      if (points.length < 3) {
-        alert('Need at least 3 points for a polygon.');
-        return;
-      }
-
-      // Close polygon (last to first)
-      ctx.beginPath();
-      ctx.moveTo(points[points.length - 1].x, points[points.length - 1].y);
-      ctx.lineTo(points[0].x, points[0].y);
-      ctx.strokeStyle = 'blue';
-      ctx.lineWidth = 3;
-      ctx.stroke();
-
-      isDrawingPolygon = false;
-      document.getElementById('acceptPolygonBtn').disabled = true;
-
-      // Generate coordinates scaled to full map size (600×800)
-      const fullWidth = 600;
-      const fullHeight = 800;
-      const scaleX = fullWidth / mapCanvas.width;
-      const scaleY = fullHeight / mapCanvas.height;
-
-      const scaledPoints = points.map(p => ({
-        x: Math.round(p.x * scaleX),
-        y: Math.round(p.y * scaleY)
-      }));
-
-      const coords = scaledPoints.map(p => `${p.x},${p.y}`).join(' ');
-      document.getElementById('points').value = coords;
-    });
-
-    document.getElementById('clearBtn').addEventListener('click', () => {
-      points = [];
-      isDrawingPolygon = false;
-      ctx.clearRect(0, 0, mapCanvas.width, mapCanvas.height);
-      document.getElementById('points').value = '';
-      document.getElementById('acceptPolygonBtn').disabled = true;
-    });
-
-    // =============================================
-    // SHOW/HIDE OBJECT FIELDS
-    // =============================================
-    document.getElementById('objectType').addEventListener('change', function() {
-      document.getElementById('objectFields').style.display = this.value ? 'block' : 'none';
-    });
-
-    // =============================================
-    // BUILD OBJECT PROPERTIES JSON BEFORE SUBMIT
-    // =============================================
-    document.getElementById('mapForm').addEventListener('submit', function(e) {
-      const type = document.getElementById('objectType').value;
-      if (!type) return;
-
-      const props = {
-        name: document.getElementById('objName').value.trim() || undefined,
-        desc: document.getElementById('objDesc').value.trim() || undefined,
-        image: document.getElementById('objImage').value.trim() || undefined
-      };
-      Object.keys(props).forEach(k => !props[k] && delete props[k]);
-
-      const input = document.createElement('input');
-      input.type = 'hidden';
-      input.name = 'objectProperties';
-      input.value = JSON.stringify(props);
-      this.appendChild(input);
-    });
-
-    // =============================================
-    // SHOW SUCCESS MESSAGE AFTER REDIRECT
-    // =============================================
-    if (window.location.search.includes('success')) {
-      document.getElementById('successMessage').style.display = 'block';
+    if (tabId === "hotspots") {
+      console.log("Loading maps into dropdown...");
+      loadMapsIntoDropdown();  // call for dropdown
     }
+  });
+});
+
+// ──────────────────────────────────────────────── Hotspots logic (Checkpoint 3)
+const canvas       = document.getElementById('canvas');
+const ctx          = canvas.getContext('2d');
+const imageInput   = document.getElementById('imageInput');
+const typeSelect   = document.getElementById('typeSelect');
+const nameInput    = document.getElementById('nameInput');
+const descInput    = document.getElementById('descInput');
+const clearBtn     = document.getElementById('clearBtn');
+const saveBtn      = document.getElementById('saveBtn');
+const statusEl     = document.getElementById('status');
+const resultEl     = document.getElementById('result');
+const mapSelect    = document.getElementById('mapSelect'); // new
+
+let img     = new Image();
+let points  = [];
+
+// ──────────────────────────────────────────────── Canvas functions
+function fitCanvasToImage() {
+  if (!img.src || img.naturalWidth <= 0) return;
+  canvas.width = img.naturalWidth;
+  canvas.height = img.naturalHeight;
+  console.log(`Canvas fitted to native size: ${canvas.width} × ${canvas.height}`);
+  redraw();
+}
+
+function redraw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  if (img.src) ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  if (points.length >= 2) {
+    ctx.strokeStyle = '#22c55e';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(points[0].x, points[0].y);
+    for (let i = 1; i < points.length; i++) ctx.lineTo(points[i].x, points[i].y);
+    ctx.stroke();
+  }
+  document.querySelectorAll('.point-label').forEach(el => el.remove());
+  points.forEach((p, i) => {
+    ctx.fillStyle = '#22c55e';
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 6, 0, Math.PI * 2);
+    ctx.fill();
+    const label = document.createElement('div');
+    label.className = 'point-label';
+    label.textContent = (i + 1).toString();
+    label.style.left = p.x + 'px';
+    label.style.top = p.y + 'px';
+    canvas.parentElement.appendChild(label);
+  });
+}
+
+function updateUI() {
+  const hasImage = !!imageInput.files.length;
+  clearBtn.disabled = points.length === 0;
+  saveBtn.disabled = !hasImage || !mapSelect.value || !nameInput.value.trim();
+  statusEl.textContent = `Points placed: ${points.length}`;
+}
+
+// ──────────────────────────────────────────────── Image loading
+imageInput.addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) {
+    statusEl.textContent = "No file selected";
+    updateUI();
+    return;
+  }
+  statusEl.textContent = `Reading ${file.name} ...`;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    img = new Image();
+    img.src = ev.target.result;
+    img.onload = () => {
+      fitCanvasToImage();
+      points = [];
+      updateUI();
+      resultEl.textContent = '';
+      statusEl.textContent = `Image loaded (${img.naturalWidth}×${img.naturalHeight}) – click/tap to place points`;
+    };
+  };
+  reader.readAsDataURL(file);
+  updateUI();
+});
+
+// ──────────────────────────────────────────────── Add point
+canvas.addEventListener('click', e => {
+  if (!img.src || img.naturalWidth <= 0) {
+    statusEl.textContent = "Load an image first";
+    return;
+  }
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+  const pointX = Math.round(x);
+  const pointY = Math.round(y);
+  const clampedX = Math.max(0, Math.min(pointX, img.naturalWidth));
+  const clampedY = Math.max(0, Math.min(pointY, img.naturalHeight));
+  points.push({ x: clampedX, y: clampedY });
+  updateUI();
+  redraw();
+});
+
+// ──────────────────────────────────────────────── Clear
+clearBtn.addEventListener('click', () => {
+  points = [];
+  updateUI();
+  redraw();
+  resultEl.textContent = '';
+});
+
+// ──────────────────────────────────────────────── Show/hide zoom field
+typeSelect.addEventListener('change', () => {
+  const isZoom = typeSelect.value === "zoom_to";
+  document.getElementById('zoomTargetGroup').style.display = isZoom ? 'block' : 'none';
+  updateUI();
+});
+
+// ──────────────────────────────────────────────── Fetch maps (used in both tabs)
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz187kpP3gtvzMtVsMq4COdMp2LR87SifTT-AnMIr-KGnsjNCxnWEP1kshSWVdz7ndE/exec";
+
+loadMaps
+
+// ──────────────────────────────────────────────── Save Hotspot
+async function saveToSheet() {
+  const selectedType = typeSelect.value;
+  if (!selectedType) return statusEl.textContent = "Select a type first";
+  if (!mapSelect.value) return statusEl.textContent = "Select a map first";
+
+  const nameValue    = nameInput.value.trim();
+  const description  = descInput.value.trim();
+  const zoomTarget   = selectedType === "zoom_to" ? document.getElementById('zoomTargetInput')?.value.trim() || "" : "";
+  const imageName    = imageInput.files[0]?.name || `entry-${Date.now()}`;
+  const pointCount   = points.length;
+  const pointsString = pointCount > 0 ? points.map(p => `${p.x};${p.y}`).join('\n') : "";
+
+  if (!nameValue) return statusEl.textContent = "Enter a name";
+
+  const formData = new FormData();
+  formData.append("sheet", "Hotspots");
+  formData.append("type", selectedType);
+  formData.append("name", nameValue);
+  formData.append("description", description);
+  formData.append("zoomTo", zoomTarget);
+  formData.append("imageName", imageName);
+  formData.append("pointCount", pointCount.toString());
+  formData.append("points", pointsString);
+  formData.append("pointsJson", JSON.stringify(points.map(p => [p.x, p.y])));
+  formData.append("hasPoints", (pointCount > 0).toString());
+
+  statusEl.textContent = `Saving ${selectedType} "${nameValue}" (${pointCount} pts)...`;
+
+  try {
+    await fetch(SCRIPT_URL, { method: 'POST', body: formData, mode: 'no-cors' });
+
+    const prefix = { Map:"MAP-", Marker:"MRK-", NPC:"NPC-", Pickup:"PCK-", zoom_to:"ZOM-" }[selectedType] || "UNK-";
+    const expectedId = prefix + String(pointCount + 1).padStart(3, '0');
+
+    statusEl.textContent = `Saved "${nameValue}" (${expectedId})`;
+    resultEl.textContent = `Saved to Hotspots sheet.\n\n${JSON.stringify(Object.fromEntries(formData), null, 2)}`;
+
+    // Reset
+    nameInput.value = '';
+    descInput.value = '';
+    document.getElementById('zoomTargetInput') && (document.getElementById('zoomTargetInput').value = '');
+    imageInput.value = '';
+    img = new Image(); img.src = '';
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    points = [];
+    redraw();
+    resultEl.textContent = '';
+    updateUI();
+    statusEl.textContent += " — Ready for next";
+
+  } catch (err) {
+    console.error(err);
+    statusEl.textContent += " — Save failed";
+  }
+}
+
+// ──────────────────────────────────────────────── Save Map (new function for Maps tab)
+async function saveMap() {
+  const mapName = document.getElementById('mapName').value.trim();
+  const mapDesc = document.getElementById('mapDesc').value.trim();
+  const file = document.getElementById('mapBackground').files[0];
+
+  if (!mapName) return alert("Enter a map name");
+
+  const formData = new FormData();
+  formData.append("sheet", "Maps");
+  formData.append("name", mapName);
+  formData.append("description", mapDesc);
+  if (file) formData.append("backgroundImage", file.name);
+
+  try {
+    await fetch(SCRIPT_URL, { method: 'POST', body: formData, mode: 'no-cors' });
+    alert("Map saved! Refresh Maps tab to see it.");
+    loadMaps(); // refresh list
+    document.getElementById('mapName').value = '';
+    document.getElementById('mapDesc').value = '';
+    document.getElementById('mapBackground').value = '';
+  } catch (err) {
+    alert("Save failed: " + err.message);
+  }
+}
+
+document.getElementById('saveMapBtn').addEventListener('click', saveMap);
+
+// Load maps when needed
+async function loadMaps() {
+  try {
+    const r = await fetch(`${SCRIPT_URL}?action=getMaps`);
+    const data = await r.json();
+    if (data.status === "success") {
+      const tbody = document.querySelector('#mapsTable tbody');
+      tbody.innerHTML = '';
+      data.maps.forEach(m => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${m.mapId}</td><td>${m.name}</td><td>${m.background}</td><td>${m.description || ""}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
+  } catch (err) {
+    console.error("Load maps failed:", err);
+  }
+}
+
+// Initial load when opening Maps tab
+document.querySelector('[data-tab="maps"]').addEventListener('click', loadMaps);
+
+// Initial dropdown population when opening Hotspots tab
+document.querySelector('[data-tab="hotspots"]').addEventListener('click', loadMapsIntoDropdown);
 </script>
-
 </body>
 </html>
