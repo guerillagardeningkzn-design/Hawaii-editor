@@ -615,6 +615,37 @@ ${pointsString || "(none)"}`;
       statusEl.textContent += " — Ready for next hotspot";
     }
   });
+// Load existing entities into table
+async function loadEntities() {
+  console.log("Loading entities table");
+  try {
+    const r = await fetch(`${SCRIPT_URL}?action=getEntities`);
+    const data = await r.json();
+    console.log("Entities data:", data);
+
+    const tbody = document.querySelector('#entitiesTable tbody');
+    if (!tbody) return;
+
+    tbody.innerHTML = '';
+
+    if (data.status === "success") {
+      if (data.entities.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6">No entities created yet</td></tr>';
+      } else {
+        data.entities.forEach(e => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td>${e.entityId || "—"}</td><td>${e.name || "—"}</td><td>${e.type || "—"}</td><td>${e.sprite || "—"}</td><td>${e.position || "—"}</td><td>${e.description || "—"}</td>`;
+          tbody.appendChild(tr);
+        });
+      }
+    } else {
+      tbody.innerHTML = '<tr><td colspan="6">Failed to load entities</td></tr>';
+    }
+  } catch (err) {
+    console.error("Entities load error:", err);
+  }
+}
+  
 </script>
 </body>
 </html>
