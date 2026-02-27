@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Game Content Editor</title>
+
+  <!-- ==================== STYLES ==================== -->
   <style>
     :root {
       --bg: #0f0f17;
@@ -16,35 +18,160 @@
       --success: #22c55e;
       --danger: #ef4444;
     }
-    body { margin: 0; font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 24px; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 24px;
+    }
+
     .container { max-width: 1200px; margin: 0 auto; }
-    h1 { margin: 0 0 16px; color: #a5b4fc; text-align: center; }
-    .tabs { display: flex; border-bottom: 1px solid #334155; margin-bottom: 24px; overflow-x: auto; padding-bottom: 4px; }
-    .tab-button { padding: 12px 28px; background: transparent; border: none; color: var(--text-muted); font-size: 1.05rem; cursor: pointer; white-space: nowrap; transition: all 0.15s; }
+
+    h1 {
+      margin: 0 0 16px;
+      color: #a5b4fc;
+      text-align: center;
+    }
+
+    /* Tabs navigation */
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid #334155;
+      margin-bottom: 24px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+
+    .tab-button {
+      padding: 12px 28px;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+
     .tab-button:hover { color: var(--text); }
-    .tab-button.active { color: #a5b4fc; border-bottom: 3px solid var(--primary); font-weight: 600; }
+
+    .tab-button.active {
+      color: #a5b4fc;
+      border-bottom: 3px solid var(--primary);
+      font-weight: 600;
+    }
+
     .tab-content { display: none; }
     .tab-content.active { display: block; }
-    .controls { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 20px; }
-    .input-group { display: flex; flex-direction: column; min-width: 220px; flex: 1; }
-    label { margin-bottom: 6px; font-weight: 500; color: #cbd5e1; }
-    input, textarea, select { padding: 10px 12px; border-radius: 8px; border: 1px solid #4b5563; background: #111827; color: var(--text); font-size: 1rem; }
+
+    /* Form controls */
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      min-width: 220px;
+      flex: 1;
+    }
+
+    label {
+      margin-bottom: 6px;
+      font-weight: 500;
+      color: #cbd5e1;
+    }
+
+    input, textarea, select {
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid #4b5563;
+      background: #111827;
+      color: var(--text);
+      font-size: 1rem;
+    }
+
     textarea { min-height: 90px; resize: vertical; }
-    button { padding: 10px 20px; border: none; border-radius: 8px; font-size: 1rem; font-weight: 500; cursor: pointer; transition: all 0.15s; height: 40px; }
+
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      height: 40px;
+    }
+
     .btn-primary { background: var(--primary); color: white; }
     .btn-primary:hover:not(:disabled) { background: var(--primary-dark); }
     .btn-secondary { background: #475569; color: white; }
     .btn-secondary:hover:not(:disabled) { background: #334155; }
     .btn-clear { background: var(--danger); color: white; }
     .btn-clear:hover:not(:disabled) { background: #dc2626; }
+
     button:disabled { opacity: 0.5; cursor: not-allowed; }
-    #status { padding: 12px 16px; border-radius: 8px; background: #111827; border: 1px solid #334155; font-family: monospace; min-height: 1.4em; }
-    .canvas-wrapper { position: relative; background: #0f172a; border-radius: 12px; overflow: hidden; border: 1px solid #334155; margin: 16px 0; max-width: 100%; overflow-x: auto; }
+
+    #status {
+      padding: 12px 16px;
+      border-radius: 8px;
+      background: #111827;
+      border: 1px solid #334155;
+      font-family: monospace;
+      min-height: 1.4em;
+    }
+
+    .canvas-wrapper {
+      position: relative;
+      background: #0f172a;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid #334155;
+      margin: 16px 0;
+      max-width: 100%;
+      overflow-x: auto;
+    }
+
     canvas { display: block; touch-action: none; }
-    .point-label { position: absolute; color: #fbbf24; font-size: 11px; font-weight: bold; pointer-events: none; transform: translate(-50%, -150%); text-shadow: 0 0 6px black, 1px 1px 3px black; }
-    pre#result { background: #111827; padding: 16px; border-radius: 8px; border: 1px solid #334155; white-space: pre-wrap; font-size: 0.92rem; }
-    table { width: 100%; border-collapse: collapse; margin-top: 16px; }
-    th, td { padding: 10px; border: 1px solid #334155; text-align: left; }
+
+    .point-label {
+      position: absolute;
+      color: #fbbf24;
+      font-size: 11px;
+      font-weight: bold;
+      pointer-events: none;
+      transform: translate(-50%, -150%);
+      text-shadow: 0 0 6px black, 1px 1px 3px black;
+    }
+
+    pre#result {
+      background: #111827;
+      padding: 16px;
+      border-radius: 8px;
+      border: 1px solid #334155;
+      white-space: pre-wrap;
+      font-size: 0.92rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+    }
+
+    th, td {
+      padding: 10px;
+      border: 1px solid #334155;
+      text-align: left;
+    }
+
     th { background: #111827; }
   </style>
 </head>
@@ -53,6 +180,7 @@
 <div class="container">
   <h1>Game Content Editor</h1>
 
+  <!-- ==================== TABS NAVIGATION ==================== -->
   <div class="tabs">
     <button class="tab-button active" data-tab="hotspots">Hotspots / Touch Areas</button>
     <button class="tab-button" data-tab="maps">Maps / Rooms</button>
@@ -61,9 +189,10 @@
     <button class="tab-button" data-tab="preview">Preview & Export</button>
   </div>
 
-  <!-- Hotspots Tab -->
+  <!-- ==================== HOTSPOTS TAB ==================== -->
   <div id="hotspots" class="tab-content active">
     <div class="controls">
+      <!-- Map / Room selection -->
       <div class="input-group">
         <label for="mapSelect">Map / Room</label>
         <select id="mapSelect">
@@ -71,21 +200,19 @@
         </select>
       </div>
 
+      <!-- Name -->
       <div class="input-group">
         <label for="nameInput">Name</label>
         <input type="text" id="nameInput" placeholder="e.g. Cellar Door, Old Hermit">
       </div>
 
+      <!-- Description -->
       <div class="input-group">
         <label for="descInput">Description</label>
         <textarea id="descInput" placeholder="What happens here..."></textarea>
       </div>
 
-      <div class="input-group" id="zoomTargetGroup" style="display:none;">
-        <label for="zoomTargetInput">Zoom To Map Image</label>
-        <input type="text" id="zoomTargetInput" placeholder="e.g. cellar.jpg">
-      </div>
-
+      <!-- Zoom target info (shown only for zoom_to) -->
       <div class="input-group" id="zoomInfoGroup" style="display:none;">
         <label>Zoom Target</label>
         <div id="zoomInfoText" style="padding: 10px; background: #111827; border-radius: 8px; border: 1px solid #4b5563;">
@@ -93,6 +220,7 @@
         </div>
       </div>
 
+      <!-- Target map for full transition (shown only for Map type) -->
       <div class="input-group" id="targetMapGroup" style="display:none;">
         <label for="targetMapSelect">Target Map</label>
         <select id="targetMapSelect">
@@ -100,6 +228,7 @@
         </select>
       </div>
 
+      <!-- Type selection -->
       <div class="input-group">
         <label for="typeSelect">Type</label>
         <select id="typeSelect">
@@ -112,23 +241,27 @@
         </select>
       </div>
 
+      <!-- Background image upload -->
       <div class="input-group">
         <label for="imageInput">Background Image</label>
         <input type="file" id="imageInput" accept="image/*">
       </div>
 
+      <!-- Buttons -->
       <button id="clearBtn" class="btn-secondary" disabled>Clear Points</button>
       <button id="saveBtn" class="btn-primary" disabled>Save Hotspot</button>
     </div>
 
     <div id="status">Load a background image to start</div>
+
     <div class="canvas-wrapper">
       <canvas id="canvas"></canvas>
     </div>
+
     <pre id="result">Save result will appear here...</pre>
   </div>
 
-  <!-- Maps Tab -->
+  <!-- ==================== MAPS TAB ==================== -->
   <div id="maps" class="tab-content">
     <h2>Create New Map</h2>
     <div class="controls">
@@ -161,7 +294,7 @@
     </table>
   </div>
 
-  <!-- Placeholder tabs -->
+  <!-- ==================== PLACEHOLDER TABS ==================== -->
   <div id="entities" class="tab-content">
     <h2>Entities / Objects</h2>
     <p>Coming soon...</p>
@@ -176,217 +309,213 @@
   </div>
 </div>
 
+<!-- ==================== JAVASCRIPT ==================== -->
 <script>
-// Tab switching + auto-load
-document.querySelectorAll('.tab-button').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  // ──────────────────────────────────────────────── CONFIG
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz187kpP3gtvzMtVsMq4COdMp2LR87SifTT-AnMIr-KGnsjNCxnWEP1kshSWVdz7ndE/exec";
 
-    btn.classList.add('active');
-    const tabId = btn.dataset.tab;
-    document.getElementById(tabId).classList.add('active');
+  // ──────────────────────────────────────────────── DOM REFERENCES
+  const canvas          = document.getElementById('canvas');
+  const ctx             = canvas.getContext('2d');
+  const imageInput      = document.getElementById('imageInput');
+  const typeSelect      = document.getElementById('typeSelect');
+  const nameInput       = document.getElementById('nameInput');
+  const descInput       = document.getElementById('descInput');
+  const clearBtn        = document.getElementById('clearBtn');
+  const saveBtn         = document.getElementById('saveBtn');
+  const statusEl        = document.getElementById('status');
+  const resultEl        = document.getElementById('result');
+  const mapSelect       = document.getElementById('mapSelect');
+  const zoomTargetGroup = document.getElementById('zoomTargetGroup');
+  const zoomInfoGroup   = document.getElementById('zoomInfoGroup');
 
-    console.log(`Tab switched to: ${tabId}`);
+  // ──────────────────────────────────────────────── STATE
+  let img              = new Image();
+  let points           = [];
+  let currentImageName = "";  // tracks filename of currently loaded image
 
-    if (tabId === "maps") {
-      console.log("Maps tab opened → loading maps...");
-      loadMaps();
-    }
-    if (tabId === "hotspots") {
-      console.log("Hotspots tab opened → loading source maps...");
-      loadMapsIntoDropdown('mapSelect');
-    }
+  // ──────────────────────────────────────────────── TABS
+  document.querySelectorAll('.tab-button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.tab).classList.add('active');
+    });
   });
-});
 
-// Initial load on page open
-window.addEventListener('load', () => {
-  console.log("Page loaded → initial load of maps for Hotspots dropdown");
-  loadMapsIntoDropdown('mapSelect');
-});
-
-// ──────────────────────────────────────────────── Hotspots logic
-const canvas       = document.getElementById('canvas');
-const ctx          = canvas.getContext('2d');
-const imageInput   = document.getElementById('imageInput');
-const typeSelect   = document.getElementById('typeSelect');
-const nameInput    = document.getElementById('nameInput');
-const descInput    = document.getElementById('descInput');
-const clearBtn     = document.getElementById('clearBtn');
-const saveBtn      = document.getElementById('saveBtn');
-const statusEl     = document.getElementById('status');
-const resultEl     = document.getElementById('result');
-const mapSelect    = document.getElementById('mapSelect');
-const zoomTargetGroup = document.getElementById('zoomTargetGroup');
-const zoomInfoGroup = document.getElementById('zoomInfoGroup');
-
-let img     = new Image();
-let points  = [];
-let currentImageName = ""; // track current loaded image name
-
-// ──────────────────────────────────────────────── Canvas functions
-function fitCanvasToImage() {
-  if (!img.src || img.naturalWidth <= 0) return;
-  canvas.width = img.naturalWidth;
-  canvas.height = img.naturalHeight;
-  console.log(`Canvas fitted to native size: ${canvas.width} × ${canvas.height}`);
-  redraw();
-}
-
-function redraw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  if (img.src) ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-  if (points.length >= 2) {
-    ctx.strokeStyle = '#22c55e';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(points[0].x, points[0].y);
-    for (let i = 1; i < points.length; i++) ctx.lineTo(points[i].x, points[i].y);
-    ctx.stroke();
-  }
-  document.querySelectorAll('.point-label').forEach(el => el.remove());
-  points.forEach((p, i) => {
-    ctx.fillStyle = '#22c55e';
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, 6, 0, Math.PI * 2);
-    ctx.fill();
-    const label = document.createElement('div');
-    label.className = 'point-label';
-    label.textContent = (i + 1).toString();
-    label.style.left = p.x + 'px';
-    label.style.top = p.y + 'px';
-    canvas.parentElement.appendChild(label);
-  });
-}
-
-function updateUI() {
-  const hasImage = !!imageInput.files.length;
-  clearBtn.disabled = points.length === 0;
-  saveBtn.disabled = !hasImage || !mapSelect.value || !nameInput.value.trim();
-  statusEl.textContent = `Points placed: ${points.length}`;
-}
-
-// ──────────────────────────────────────────────── Image loading (track current image name)
-imageInput.addEventListener('change', e => {
-  const file = e.target.files[0];
-  if (!file) {
-    statusEl.textContent = "No file selected";
-    currentImageName = "";
-    updateUI();
-    return;
+  // ──────────────────────────────────────────────── CANVAS FUNCTIONS
+  function fitCanvasToImage() {
+    if (!img.src || img.naturalWidth <= 0) return;
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    redraw();
   }
 
-  currentImageName = file.name; // track for zoom_to
-  statusEl.textContent = `Reading ${file.name} ...`;
+  function redraw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  const reader = new FileReader();
-  reader.onload = ev => {
-    img = new Image();
-    img.src = ev.target.result;
-    img.onload = () => {
-      fitCanvasToImage();
-      points = [];
+    if (img.src) {
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    }
+
+    if (points.length >= 2) {
+      ctx.strokeStyle = '#22c55e';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(points[0].x, points[0].y);
+      for (let i = 1; i < points.length; i++) {
+        ctx.lineTo(points[i].x, points[i].y);
+      }
+      ctx.stroke();
+    }
+
+    document.querySelectorAll('.point-label').forEach(el => el.remove());
+
+    points.forEach((p, i) => {
+      ctx.fillStyle = '#22c55e';
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 6, 0, Math.PI * 2);
+      ctx.fill();
+
+      const label = document.createElement('div');
+      label.className = 'point-label';
+      label.textContent = (i + 1).toString();
+      label.style.left = p.x + 'px';
+      label.style.top = p.y + 'px';
+      canvas.parentElement.appendChild(label);
+    });
+  }
+
+  // ──────────────────────────────────────────────── UI STATE
+  function updateUI() {
+    const hasImage = !!imageInput.files.length;
+    clearBtn.disabled = points.length === 0;
+    saveBtn.disabled = !hasImage || !mapSelect.value || !nameInput.value.trim();
+    statusEl.textContent = `Points placed: ${points.length}`;
+  }
+
+  // ──────────────────────────────────────────────── IMAGE LOADING
+  imageInput.addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) {
+      statusEl.textContent = "No file selected";
+      currentImageName = "";
       updateUI();
-      resultEl.textContent = '';
-      statusEl.textContent = `Image loaded (${img.naturalWidth}×${img.naturalHeight}) – click/tap to place points`;
+      return;
+    }
+
+    currentImageName = file.name;
+    statusEl.textContent = `Reading ${file.name} ...`;
+
+    const reader = new FileReader();
+    reader.onload = ev => {
+      img = new Image();
+      img.src = ev.target.result;
+      img.onload = () => {
+        fitCanvasToImage();
+        points = [];
+        updateUI();
+        resultEl.textContent = '';
+        statusEl.textContent = `Image loaded (${img.naturalWidth}×${img.naturalHeight}) – click/tap to place points`;
+      };
     };
-  };
-  reader.readAsDataURL(file);
-  updateUI();
-});
+    reader.readAsDataURL(file);
+    updateUI();
+  });
 
-// ──────────────────────────────────────────────── Add point
-canvas.addEventListener('click', e => {
-  if (!img.src || img.naturalWidth <= 0) {
-    statusEl.textContent = "Load an image first";
-    return;
-  }
-  const rect = canvas.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
-  const pointX = Math.round(x);
-  const pointY = Math.round(y);
-  const clampedX = Math.max(0, Math.min(pointX, img.naturalWidth));
-  const clampedY = Math.max(0, Math.min(pointY, img.naturalHeight));
-  points.push({ x: clampedX, y: clampedY });
-  updateUI();
-  redraw();
-});
+  // ──────────────────────────────────────────────── POINT PLACEMENT
+  canvas.addEventListener('click', e => {
+    if (!img.src || img.naturalWidth <= 0) {
+      statusEl.textContent = "Load an image first";
+      return;
+    }
 
-// ──────────────────────────────────────────────── Clear
-clearBtn.addEventListener('click', () => {
-  points = [];
-  updateUI();
-  redraw();
-  resultEl.textContent = '';
-});
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const pointX = Math.round(x);
+    const pointY = Math.round(y);
+    const clampedX = Math.max(0, Math.min(pointX, img.naturalWidth));
+    const clampedY = Math.max(0, Math.min(pointY, img.naturalHeight));
 
-// ──────────────────────────────────────────────── Show/hide zoom & target fields
-typeSelect.addEventListener('change', () => {
-  const value = typeSelect.value;
-  const isZoom = value === "zoom_to";
+    points.push({ x: clampedX, y: clampedY });
+    updateUI();
+    redraw();
+  });
 
-  document.getElementById('zoomTargetGroup').style.display = 'none'; // hide old text input
-  document.getElementById('zoomInfoGroup').style.display = isZoom ? 'block' : 'none';
+  // ──────────────────────────────────────────────── CLEAR BUTTON
+  clearBtn.addEventListener('click', () => {
+    points = [];
+    updateUI();
+    redraw();
+    resultEl.textContent = '';
+  });
 
-  if (isZoom) {
-    const infoEl = document.getElementById('zoomInfoText');
-    infoEl.textContent = currentImageName
-      ? `Zoom To Points: define the zoom region on current map image (${currentImageName})`
-      : "Zoom To Points: define the zoom region on current map image";
-  }
+  // ──────────────────────────────────────────────── TYPE CHANGE HANDLER
+  typeSelect.addEventListener('change', () => {
+    const value = typeSelect.value;
+    const isZoom = value === "zoom_to";
 
-  updateUI();
-});
+    document.getElementById('zoomTargetGroup').style.display = 'none';
+    document.getElementById('zoomInfoGroup').style.display = isZoom ? 'block' : 'none';
 
-// ──────────────────────────────────────────────── Save Hotspot
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz187kpP3gtvzMtVsMq4COdMp2LR87SifTT-AnMIr-KGnsjNCxnWEP1kshSWVdz7ndE/exec";
+    if (isZoom) {
+      const infoEl = document.getElementById('zoomInfoText');
+      infoEl.textContent = currentImageName
+        ? `Zoom To Points: define the zoom region on current map image (${currentImageName})`
+        : "Zoom To Points: define the zoom region on current map image";
+    }
 
-async function saveToSheet() {
-  const selectedType = typeSelect.value;
-  if (!selectedType) return statusEl.textContent = "Select a type first";
+    updateUI();
+  });
 
-  const mapId = mapSelect.value;
-  if (!mapId) return statusEl.textContent = "Select a map first";
+  // ──────────────────────────────────────────────── SAVE HOTSPOT
+  saveBtn.addEventListener('click', async () => {
+    const selectedType = typeSelect.value;
+    if (!selectedType) return statusEl.textContent = "Select a type first";
 
-  const nameValue = nameInput.value.trim();
-  const description = descInput.value.trim();
-  const imageName = imageInput.files[0]?.name || `entry-${Date.now()}`;
-  const pointCount = points.length;
-  const pointsString = pointCount > 0 ? points.map(p => `${p.x};${p.y}`).join('\n') : "";
+    const mapId = mapSelect.value;
+    if (!mapId) return statusEl.textContent = "Select a map first";
 
-  if (!nameValue) return statusEl.textContent = "Enter a name";
+    const nameValue = nameInput.value.trim();
+    const description = descInput.value.trim();
+    const imageName = imageInput.files[0]?.name || `entry-${Date.now()}`;
+    const pointCount = points.length;
+    const pointsString = pointCount > 0 ? points.map(p => `${p.x};${p.y}`).join('\n') : "";
 
-  // Special handling for zoom_to: use current image as zoom target
-  let zoomTarget = "";
-  if (selectedType === "zoom_to") {
-    zoomTarget = currentImageName || imageName;
-  }
+    if (!nameValue) return statusEl.textContent = "Enter a name";
 
-  const formData = new FormData();
-  formData.append("sheet", "Hotspots");
-  formData.append("mapId", mapId);
-  formData.append("type", selectedType);
-  formData.append("name", nameValue);
-  formData.append("description", description);
-  formData.append("zoomTo", zoomTarget);
-  formData.append("imageName", imageName);
-  formData.append("pointCount", pointCount.toString());
-  formData.append("points", pointsString);
-  formData.append("pointsJson", JSON.stringify(points.map(p => [p.x, p.y])));
-  formData.append("hasPoints", (pointCount > 0).toString());
+    // Zoom handling
+    let zoomTarget = "";
+    if (selectedType === "zoom_to") {
+      zoomTarget = imageName;  // same as current map image
+    }
 
-  statusEl.textContent = `Saving ${selectedType} "${nameValue}" (${pointCount} pts)...`;
+    const formData = new FormData();
+    formData.append("sheet", "Hotspots");
+    formData.append("mapId", mapId);
+    formData.append("type", selectedType);
+    formData.append("name", nameValue);
+    formData.append("description", description);
+    formData.append("zoomTo", zoomTarget);
+    formData.append("imageName", imageName);
+    formData.append("pointCount", pointCount.toString());
+    formData.append("points", pointsString);
+    formData.append("pointsJson", JSON.stringify(points.map(p => [p.x, p.y])));
+    formData.append("hasPoints", (pointCount > 0).toString());
 
-  try {
-    await fetch(SCRIPT_URL, { method: 'POST', body: formData, mode: 'no-cors' });
+    statusEl.textContent = `Saving ${selectedType} "${nameValue}" (${pointCount} pts)...`;
 
-    const prefix = { Map:"MAP-", Marker:"MRK-", NPC:"NPC-", Pickup:"PCK-", zoom_to:"ZOM-" }[selectedType] || "UNK-";
-    const expectedId = prefix + String(pointCount + 1).padStart(3, '0');
+    try {
+      await fetch(SCRIPT_URL, { method: 'POST', body: formData, mode: 'no-cors' });
 
-    statusEl.textContent = `Saved "${nameValue}" as ${selectedType} (ID ≈ ${expectedId}) on map ${mapId}`;
-    resultEl.textContent = 
+      const prefix = { Map:"MAP-", Marker:"MRK-", NPC:"NPC-", Pickup:"PCK-", zoom_to:"ZOM-" }[selectedType] || "UNK-";
+      const expectedId = prefix + String(pointCount + 1).padStart(3, '0');
+
+      statusEl.textContent = `Saved "${nameValue}" as ${selectedType} (ID ≈ ${expectedId}) on map ${mapId}`;
+      resultEl.textContent = 
 `Saved hotspot:
 MapID:       ${mapId}
 Type:        ${selectedType}
@@ -400,26 +529,24 @@ Expected ID: ${expectedId}
 Points:
 ${pointsString || "(none)"}`;
 
-    // Full reset
-    nameInput.value = '';
-    descInput.value = '';
-    document.getElementById('zoomTargetInput') && (document.getElementById('zoomTargetInput').value = '');
-    imageInput.value = '';
-    img = new Image(); img.src = '';
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    points = [];
-    redraw();
-    resultEl.textContent = '';
-    updateUI();
-    statusEl.textContent += " — Ready for next hotspot";
+      // Reset everything
+      nameInput.value = '';
+      descInput.value = '';
+      imageInput.value = '';
+      img = new Image(); img.src = '';
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      points = [];
+      redraw();
+      resultEl.textContent = '';
+      updateUI();
 
-  } catch (err) {
-    console.error("Hotspot save failed:", err);
-    statusEl.textContent += " — Save failed";
-  }
-}
+      statusEl.textContent += " — Ready for next hotspot";
 
-saveBtn.addEventListener('click', saveToSheet);
+    } catch (err) {
+      console.error("Hotspot save failed:", err);
+      statusEl.textContent += " — Save failed";
+    }
+  });
 </script>
 </body>
 </html>
