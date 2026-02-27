@@ -326,6 +326,7 @@
   const statusEl        = document.getElementById('status');
   const resultEl        = document.getElementById('result');
   const mapSelect       = document.getElementById('mapSelect');
+  const targetMapSelect = document.getElementById('targetMapSelect');
   const zoomInfoGroup   = document.getElementById('zoomInfoGroup');
   const targetMapGroup  = document.getElementById('targetMapGroup');
 
@@ -334,75 +335,53 @@
   let points           = [];
   let currentImageName = "";
 
-  // ==================== MAP LOADING FUNCTIONS (defined early so they exist before calls)
-  async function loadMaps() {
-    console.log("loadMaps() started");
+  // ==================== SINGLE MAP FETCH FUNCTION (used for both dropdowns)
+  async function fetchAndPopulateMaps() {
+    console.log("Fetching maps once for all dropdowns");
     try {
       const r = await fetch(`${SCRIPT_URL}?action=getMaps`);
-      console.log("Maps fetch status:", r.status);
+      console.log("Fetch status:", r.status);
       const data = await r.json();
       console.log("Maps data:", data);
 
-      if (data.status === "success") {
-        const tbody = document.querySelector('#mapsTable tbody');
-        tbody.innerHTML = '';
-        if (data.maps.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="4">No maps created yet</td></tr>';
-        } else {
-          data.maps.forEach(m => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `<td>${m.mapId || "—"}</td><td>${m.name || "—"}</td><td>${m.background || "—"}</td><td>${m.description || "—"}</td>`;
-            tbody.appendChild(tr);
-          });
-        }
-      } else {
-        document.querySelector('#mapsTable tbody').innerHTML = '<tr><td colspan="4">Failed to load maps</td></tr>';
+      if (data.status !== "success") {
         console.warn("Maps fetch failed:", data.error || "No status");
+        return [];
       }
+
+      return data.maps || [];
     } catch (err) {
-      document.querySelector('#mapsTable tbody').innerHTML = '<tr><td colspan="4">Error loading maps</td></tr>';
-      console.error("loadMaps error:", err);
+      console.error("Fetch error:", err);
+      return [];
     }
   }
 
-  async function loadMapsIntoDropdown() {
-    console.log("loadMapsIntoDropdown() started");
-    try {
-      const r = await fetch(`${SCRIPT_URL}?action=getMaps`);
-      console.log("Dropdown fetch status:", r.status);
-      const data = await r.json();
-      console.log("Dropdown data:", data);
-
-      if (data.status === "success") {
-        mapSelect.innerHTML = '<option value="">— select map —</option>';
-        if (data.maps.length === 0) {
-          mapSelect.innerHTML += '<option disabled>No maps available yet</option>';
-        } else {
-          data.maps.forEach(m => {
-            const opt = document.createElement('option');
-            opt.value = m.mapId;
-            opt.textContent = `${m.name} (${m.mapId})`;
-            mapSelect.appendChild(opt);
-          });
-        }
-      } else {
-        mapSelect.innerHTML = '<option value="">— error loading maps —</option>';
-        console.warn("Dropdown fetch failed:", data.error || "No status");
-      }
-    } catch (err) {
-      mapSelect.innerHTML = '<option value="">— error loading maps —</option>';
-      console.error("Dropdown fetch error:", err);
+  // ==================== POPULATE ANY DROPDOWN WITH MAP LIST
+  function populateDropdown(selectElement, maps) {
+    selectElement.innerHTML = '<option value="">— select map —</option>';
+    if (maps.length === 0) {
+      selectElement.innerHTML += '<option disabled>No maps available yet</option>';
+    } else {
+      maps.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m.mapId;
+        opt.textContent = `${m.name} (${m.mapId})`;
+        selectElement.appendChild(opt);
+      });
     }
   }
 
-  // ==================== AUTO-LOAD MAPS ON PAGE REFRESH
-  window.addEventListener('load', () => {
-    console.log("Page fully loaded → auto-loading maps");
-    loadMapsIntoDropdown();
-    loadMaps();
+  // ==================== AUTO-LOAD MAPS ONCE ON PAGE REFRESH (for both dropdowns)
+  window.addEventListener('load', async () => {
+    console.log("Page fully loaded → loading maps once for all dropdowns");
+    const maps = await fetchAndPopulateMaps();
+
+    // Fill both dropdowns (source and target)
+    populateDropdown(mapSelect, maps);
+    populateDropdown(targetMapSelect, maps); // even if hidden
   });
 
-  // ==================== TABS SWITCHING
+  // ==================== TABS SWITCHING (no reload of maps – already loaded)
   document.querySelectorAll('.tab-button').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
@@ -413,10 +392,45 @@
 
       const tabId = btn.dataset.tab;
       console.log(`Tab switched to: ${tabId}`);
-
-      if (tabId === "maps") loadMaps();
-      if (tabId === "hotspots") loadMapsIntoDropdown();
+      // No need to reload maps here – already done on page load
     });
+  });
+
+  // ==================== REFRESH MAPS AFTER SAVING A NEW MAP
+  document.getElementById('saveMapBtn').addEventListener('click', async () => {
+    const mapName = document.getElementById('mapName').value.trim();
+    const mapDesc = document.getElementById('mapDesc').value.trim();
+    const file = document.getElementById('mapBackground').files[0];
+
+    if (!mapName) {
+      alert("Please enter a map name");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("sheet", "Maps");
+    formData.append("name", mapName);
+    formData.append("description", mapDesc);
+    if (file) formData.append("backgroundImage", file.name);
+
+    try {
+      await fetch(SCRIPT_URL, { method: 'POST', body: formData, mode: 'no-cors' });
+      alert("Map saved successfully!");
+
+      // Clear form
+      document.getElementById('mapName').value = '';
+      document.getElementById('mapDesc').value = '';
+      document.getElementById('mapBackground').value = '';
+
+      // Reload maps for both dropdowns after new map added
+      const maps = await fetchAndPopulateMaps();
+      populateDropdown(mapSelect, maps);
+      populateDropdown(targetMapSelect, maps);
+
+    } catch (err) {
+      console.error("Map save failed:", err);
+      alert("Failed to save map: " + err.message);
+    }
   });
 
   // ==================== CANVAS FUNCTIONS
@@ -463,16 +477,12 @@
     });
   }
 
-  // ==================== UI UPDATE
+  // ==================== UI UPDATE – Save button always active
   function updateUI() {
-  // Only update clear button state — save button is always enabled now
-  clearBtn.disabled = points.length === 0;
-  
-  // Save button is deliberately left always active (no checks)
-  saveBtn.disabled = false;
-
-  statusEl.textContent = `Points placed: ${points.length}`;
-}
+    clearBtn.disabled = points.length === 0;
+    saveBtn.disabled = false; // always enabled as requested
+    statusEl.textContent = `Points placed: ${points.length}`;
+  }
 
   // ==================== IMAGE LOADING
   imageInput.addEventListener('change', e => {
@@ -531,7 +541,7 @@
     resultEl.textContent = '';
   });
 
-  // ==================== TYPE CHANGE HANDLER (with target dropdown population)
+  // ==================== TYPE CHANGE HANDLER
   typeSelect.addEventListener('change', () => {
     const value = typeSelect.value.trim();
     console.log("Selected type:", value);
@@ -541,37 +551,6 @@
 
     document.getElementById('zoomInfoGroup').style.display = isZoom ? 'block' : 'none';
     document.getElementById('targetMapGroup').style.display = isFullTransition ? 'block' : 'none';
-
-    // Populate target dropdown when "Map" is selected and it's empty
-    if (isFullTransition) {
-      const targetSelect = document.getElementById('targetMapSelect');
-      if (targetSelect.options.length <= 1) {  // only populate if not already filled
-        console.log("Populating target map dropdown");
-        fetch(`${SCRIPT_URL}?action=getMaps`)
-          .then(r => r.json())
-          .then(data => {
-            if (data.status === "success") {
-              targetSelect.innerHTML = '<option value="">— select target map —</option>';
-              if (data.maps.length === 0) {
-                targetSelect.innerHTML += '<option disabled>No maps available</option>';
-              } else {
-                data.maps.forEach(m => {
-                  const opt = document.createElement('option');
-                  opt.value = m.mapId;
-                  opt.textContent = `${m.name} (${m.mapId})`;
-                  targetSelect.appendChild(opt);
-                });
-              }
-            } else {
-              targetSelect.innerHTML = '<option value="">— error loading targets —</option>';
-            }
-          })
-          .catch(err => {
-            console.error("Target dropdown fetch error:", err);
-            targetSelect.innerHTML = '<option value="">— error loading targets —</option>';
-          });
-      }
-    }
 
     if (isZoom) {
       const infoEl = document.getElementById('zoomInfoText');
@@ -604,7 +583,6 @@
       zoomTarget = imageName;
     }
 
-    // Read target map ID for "Map" type
     const targetMapId = document.getElementById('targetMapSelect')?.value || "";
 
     const formData = new FormData();
@@ -614,7 +592,7 @@
     formData.append("name", nameValue);
     formData.append("description", description);
     formData.append("zoomTo", zoomTarget);
-    formData.append("targetMapId", targetMapId); // sent correctly
+    formData.append("targetMapId", targetMapId);
     formData.append("imageName", imageName);
     formData.append("pointCount", pointCount.toString());
     formData.append("points", pointsString);
@@ -662,39 +640,6 @@ ${pointsString || "(none)"}`;
       statusEl.textContent += " — Ready for next hotspot";
     }
   });
-  // ==================== SAVE NEW MAP (Maps tab)
-document.getElementById('saveMapBtn').addEventListener('click', async () => {
-  const mapName = document.getElementById('mapName').value.trim();
-  const mapDesc = document.getElementById('mapDesc').value.trim();
-  const file = document.getElementById('mapBackground').files[0];
-
-  if (!mapName) {
-    alert("Please enter a map name");
-    return;
-  }
-
-  const formData = new FormData();
-  formData.append("sheet", "Maps");
-  formData.append("name", mapName);
-  formData.append("description", mapDesc);
-  if (file) formData.append("backgroundImage", file.name);
-
-  try {
-    await fetch(SCRIPT_URL, { method: 'POST', body: formData, mode: 'no-cors' });
-    alert("Map saved successfully!");
-    
-    // Clear form
-    document.getElementById('mapName').value = '';
-    document.getElementById('mapDesc').value = '';
-    document.getElementById('mapBackground').value = '';
-
-    // Refresh table
-    loadMaps();
-  } catch (err) {
-    console.error("Map save failed:", err);
-    alert("Failed to save map: " + err.message);
-  }
-});
 </script>
 </body>
 </html>
