@@ -272,7 +272,63 @@ function updateUI() {
   saveBtn.disabled = !hasImage || !mapSelect.value || !nameInput.value.trim();
   statusEl.textContent = `Points placed: ${points.length}`;
 }
+// ──────────────────────────────────────────────── Fetch maps (missing function 1)
+async function loadMaps() {
+  console.log("loadMaps() started");
+  try {
+    const r = await fetch(`${SCRIPT_URL}?action=getMaps`);
+    console.log("Maps fetch status:", r.status);
+    const data = await r.json();
+    console.log("Maps data:", data);
 
+    if (data.status === "success") {
+      const tbody = document.querySelector('#mapsTable tbody');
+      tbody.innerHTML = '';
+      if (data.maps.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4">No maps created yet</td></tr>';
+      } else {
+        data.maps.forEach(m => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td>${m.mapId}</td><td>${m.name}</td><td>${m.background}</td><td>${m.description || ""}</td>`;
+          tbody.appendChild(tr);
+        });
+      }
+    } else {
+      console.warn("Maps fetch failed:", data.error || "No status");
+    }
+  } catch (err) {
+    console.error("loadMaps error:", err);
+  }
+}
+
+// ──────────────────────────────────────────────── Load maps into dropdown (missing function 2)
+async function loadMapsIntoDropdown() {
+  console.log("loadMapsIntoDropdown() started");
+  try {
+    const r = await fetch(`${SCRIPT_URL}?action=getMaps`);
+    console.log("Dropdown fetch status:", r.status);
+    const data = await r.json();
+    console.log("Dropdown data:", data);
+
+    if (data.status === "success") {
+      mapSelect.innerHTML = '<option value="">— select map —</option>';
+      if (data.maps.length === 0) {
+        mapSelect.innerHTML += '<option disabled>No maps yet</option>';
+      } else {
+        data.maps.forEach(m => {
+          const opt = document.createElement('option');
+          opt.value = m.mapId;
+          opt.textContent = `${m.name} (${m.mapId})`;
+          mapSelect.appendChild(opt);
+        });
+      }
+    } else {
+      console.warn("Dropdown fetch failed:", data.error || "No status");
+    }
+  } catch (err) {
+    console.error("Dropdown fetch error:", err);
+  }
+}
 // ──────────────────────────────────────────────── Image loading (track current image name)
 imageInput.addEventListener('change', e => {
   const file = e.target.files[0];
