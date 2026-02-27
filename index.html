@@ -527,27 +527,33 @@ window.addEventListener('load', () => {
     resultEl.textContent = '';
   });
 
-  // ──────────────────────────────────────────────── TYPE CHANGE HANDLER (FIXED HERE)
-  typeSelect.addEventListener('change', () => {
-    const value = typeSelect.value.trim(); // trim to avoid whitespace issues
-    console.log("Selected type:", value); // debug to see exact value
+// ──────────────────────────────────────────────── TYPE CHANGE HANDLER (updated to fix target dropdown visibility)
+typeSelect.addEventListener('change', () => {
+  const value = typeSelect.value.trim(); // remove any accidental spaces
+  console.log("Selected type value:", value); // debug: see exactly what value is received
 
-    const isZoom = value === "zoom_to";
-    const isFullTransition = value === "Map"; // or value.toLowerCase() === "map" for extra safety
+  const isZoom = value === "zoom_to";
+  const isFullTransition = value === "Map"; // exact match for your option value="Map"
 
-    document.getElementById('zoomTargetGroup').style.display = 'none';
-    document.getElementById('zoomInfoGroup').style.display = isZoom ? 'block' : 'none';
-    document.getElementById('targetMapGroup').style.display = isFullTransition ? 'block' : 'none';
+  // Hide old zoom text input (we don't use it anymore for zoom_to)
+  document.getElementById('zoomTargetGroup').style.display = 'none';
 
-    if (isZoom) {
-      const infoEl = document.getElementById('zoomInfoText');
-      infoEl.textContent = currentImageName
-        ? `Zoom To Points: define the zoom region on current map image (${currentImageName})`
-        : "Zoom To Points: define the zoom region on current map image";
-    }
+  // Show/hide zoom info block
+  document.getElementById('zoomInfoGroup').style.display = isZoom ? 'block' : 'none';
 
-    updateUI();
-  });
+  // Show/hide target map dropdown for full scene transition
+  document.getElementById('targetMapGroup').style.display = isFullTransition ? 'block' : 'none';
+
+  // Update zoom info text when visible
+  if (isZoom) {
+    const infoEl = document.getElementById('zoomInfoText');
+    infoEl.textContent = currentImageName
+      ? `Zoom To Points: define the zoom region on current map image (${currentImageName})`
+      : "Zoom To Points: define the zoom region on current map image";
+  }
+
+  updateUI();
+});
 
   // ──────────────────────────────────────────────── SAVE HOTSPOT
   saveBtn.addEventListener('click', async () => {
