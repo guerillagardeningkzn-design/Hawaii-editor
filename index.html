@@ -311,7 +311,7 @@
 
 <!-- ==================== JAVASCRIPT ==================== -->
 <script>
-  // ==================== CONFIG – must be at the top
+  // ==================== CONFIG (must be first)
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz187kpP3gtvzMtVsMq4COdMp2LR87SifTT-AnMIr-KGnsjNCxnWEP1kshSWVdz7ndE/exec";
 
   // ==================== DOM REFERENCES
@@ -329,12 +329,80 @@
   const zoomInfoGroup   = document.getElementById('zoomInfoGroup');
   const targetMapGroup  = document.getElementById('targetMapGroup');
 
-  // ==================== STATE VARIABLES
+  // ==================== STATE
   let img              = new Image();
   let points           = [];
-  let currentImageName = "";  // tracks the current loaded image filename
+  let currentImageName = "";
 
-  // ==================== TABS SWITCHING
+  // ==================== MAP LOADING FUNCTIONS (MOVE THESE UP – BEFORE EVENT LISTENERS)
+  async function loadMaps() {
+    console.log("loadMaps() started");
+    try {
+      const r = await fetch(`${SCRIPT_URL}?action=getMaps`);
+      console.log("Maps fetch status:", r.status);
+      const data = await r.json();
+      console.log("Maps data:", data);
+
+      if (data.status === "success") {
+        const tbody = document.querySelector('#mapsTable tbody');
+        tbody.innerHTML = '';
+        if (data.maps.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="4">No maps created yet</td></tr>';
+        } else {
+          data.maps.forEach(m => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${m.mapId || "—"}</td><td>${m.name || "—"}</td><td>${m.background || "—"}</td><td>${m.description || "—"}</td>`;
+            tbody.appendChild(tr);
+          });
+        }
+      } else {
+        document.querySelector('#mapsTable tbody').innerHTML = '<tr><td colspan="4">Failed to load maps</td></tr>';
+        console.warn("Maps fetch failed:", data.error || "No status");
+      }
+    } catch (err) {
+      document.querySelector('#mapsTable tbody').innerHTML = '<tr><td colspan="4">Error loading maps</td></tr>';
+      console.error("loadMaps error:", err);
+    }
+  }
+
+  async function loadMapsIntoDropdown() {
+    console.log("loadMapsIntoDropdown() started");
+    try {
+      const r = await fetch(`${SCRIPT_URL}?action=getMaps`);
+      console.log("Dropdown fetch status:", r.status);
+      const data = await r.json();
+      console.log("Dropdown data:", data);
+
+      if (data.status === "success") {
+        mapSelect.innerHTML = '<option value="">— select map —</option>';
+        if (data.maps.length === 0) {
+          mapSelect.innerHTML += '<option disabled>No maps available yet</option>';
+        } else {
+          data.maps.forEach(m => {
+            const opt = document.createElement('option');
+            opt.value = m.mapId;
+            opt.textContent = `${m.name} (${m.mapId})`;
+            mapSelect.appendChild(opt);
+          });
+        }
+      } else {
+        mapSelect.innerHTML = '<option value="">— error loading maps —</option>';
+        console.warn("Dropdown fetch failed:", data.error || "No status");
+      }
+    } catch (err) {
+      mapSelect.innerHTML = '<option value="">— error loading maps —</option>';
+      console.error("Dropdown fetch error:", err);
+    }
+  }
+
+  // ==================== AUTO-LOAD MAPS ON PAGE REFRESH (now works because functions are defined above)
+  window.addEventListener('load', () => {
+    console.log("Page fully loaded → auto-loading maps");
+    loadMapsIntoDropdown();   // Hotspots dropdown
+    loadMaps();               // Maps tab table
+  });
+
+  // ==================== TABS SWITCHING (calls the functions when switching tabs)
   document.querySelectorAll('.tab-button').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
@@ -346,20 +414,12 @@
       const tabId = btn.dataset.tab;
       console.log(`Tab switched to: ${tabId}`);
 
-      // Load data when relevant tab is opened
       if (tabId === "maps") loadMaps();
       if (tabId === "hotspots") loadMapsIntoDropdown();
     });
   });
 
-  // ==================== AUTO-LOAD MAPS ON PAGE REFRESH
-  window.addEventListener('load', () => {
-    console.log("Page fully loaded → auto-loading maps");
-    loadMapsIntoDropdown();   // Hotspots dropdown
-    loadMaps();               // Maps tab table
-  });
-
-  // ==================== CANVAS SETUP & DRAWING
+  // ==================== CANVAS FUNCTIONS (unchanged)
   function fitCanvasToImage() {
     if (!img.src || img.naturalWidth <= 0) return;
     canvas.width = img.naturalWidth;
@@ -403,7 +463,7 @@
     });
   }
 
-  // ==================== UI UPDATE LOGIC
+  // ==================== UI UPDATE
   function updateUI() {
     const hasImage = !!imageInput.files.length;
     clearBtn.disabled = points.length === 0;
@@ -440,7 +500,7 @@
     updateUI();
   });
 
-  // ==================== POINT PLACEMENT ON CLICK
+  // ==================== POINT PLACEMENT
   canvas.addEventListener('click', e => {
     if (!img.src || img.naturalWidth <= 0) {
       statusEl.textContent = "Load an image first";
@@ -460,7 +520,7 @@
     redraw();
   });
 
-  // ==================== CLEAR POINTS BUTTON
+  // ==================== CLEAR BUTTON
   clearBtn.addEventListener('click', () => {
     points = [];
     updateUI();
@@ -468,10 +528,10 @@
     resultEl.textContent = '';
   });
 
-  // ==================== TYPE SELECTION HANDLER
+  // ==================== TYPE CHANGE HANDLER
   typeSelect.addEventListener('change', () => {
     const value = typeSelect.value.trim();
-    console.log("Selected type:", value); // debug log
+    console.log("Selected type:", value);
 
     const isZoom = value === "zoom_to";
     const isFullTransition = value === "Map";
@@ -489,7 +549,7 @@
     updateUI();
   });
 
-  // ==================== SAVE HOTSPOT BUTTON
+  // ==================== SAVE HOTSPOT
   saveBtn.addEventListener('click', async () => {
     const selectedType = typeSelect.value.trim();
     if (!selectedType) return statusEl.textContent = "Select a type first";
