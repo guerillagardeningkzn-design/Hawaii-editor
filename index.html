@@ -645,7 +645,46 @@ async function loadEntities() {
     console.error("Entities load error:", err);
   }
 }
-  
+
+  // ==================== SAVE NEW ENTITY
+document.getElementById('saveEntityBtn').addEventListener('click', async () => {
+  const name = document.getElementById('entityName').value.trim();
+  const type = document.getElementById('entityType').value.trim();
+  const desc = document.getElementById('entityDesc').value.trim();
+  const position = document.getElementById('entityPosition').value.trim();
+  const file = document.getElementById('entitySprite').files[0];
+
+  if (!name || !type) {
+    alert("Name and Type are required");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("sheet", "Entities");
+  formData.append("name", name);
+  formData.append("type", type);
+  formData.append("description", desc);
+  formData.append("position", position);
+  if (file) formData.append("sprite", file.name);
+
+  console.log("Sending entity:", { name, type, desc, position, sprite: file?.name });
+
+  try {
+    await fetch(SCRIPT_URL, { method: 'POST', body: formData, mode: 'no-cors' });
+    alert("Entity saved!");
+    
+    // Clear form
+    document.getElementById('entityName').value = '';
+    document.getElementById('entityType').value = '';
+    document.getElementById('entityDesc').value = '';
+    document.getElementById('entityPosition').value = '';
+    document.getElementById('entitySprite').value = '';
+
+  } catch (err) {
+    console.error("Entity save error:", err);
+    alert("Save failed – check console");
+  }
+});
 </script>
 </body>
 </html>
