@@ -419,10 +419,17 @@ async function saveToSheet() {
 
   if (!nameValue) return statusEl.textContent = "Enter a name";
 
-  // Special handling for zoom_to: use current image as zoom target
+  // ────────────────────── Target logic ──────────────────────
   let zoomTarget = "";
+  let targetMapId = "";
+
   if (selectedType === "zoom_to") {
-    zoomTarget = currentImageName || imageName;
+    zoomTarget = imageName;  // use current map image filename
+  }
+
+  if (selectedType === "Map") {
+    targetMapId = document.getElementById('targetMapSelect')?.value || "";
+    if (!targetMapId) return statusEl.textContent = "Select a target map for transition";
   }
 
   const formData = new FormData();
@@ -431,7 +438,8 @@ async function saveToSheet() {
   formData.append("type", selectedType);
   formData.append("name", nameValue);
   formData.append("description", description);
-  formData.append("zoomTo", zoomTarget);
+  formData.append("zoomTo", zoomTarget);         // for zoom_to: image filename
+  formData.append("targetMapId", targetMapId);   // for Map: selected MapID
   formData.append("imageName", imageName);
   formData.append("pointCount", pointCount.toString());
   formData.append("points", pointsString);
@@ -454,6 +462,7 @@ Type:        ${selectedType}
 Name:        ${nameValue}
 Description: ${description || "(none)"}
 ${selectedType === "zoom_to" ? `Zoom To Image: ${zoomTarget || "(current map image)"}` : ""}
+${selectedType === "Map" ? `Target MapID: ${targetMapId || "(not set)"}` : ""}
 Image:       ${imageName}
 Points:      ${pointCount}
 Expected ID: ${expectedId}
@@ -465,6 +474,7 @@ ${pointsString || "(none)"}`;
     nameInput.value = '';
     descInput.value = '';
     document.getElementById('zoomTargetInput') && (document.getElementById('zoomTargetInput').value = '');
+    document.getElementById('targetMapSelect') && (document.getElementById('targetMapSelect').value = '');
     imageInput.value = '';
     img = new Image(); img.src = '';
     ctx.clearRect(0, 0, canvas.width, canvas.height);
