@@ -311,10 +311,10 @@
 
 <!-- ==================== JAVASCRIPT ==================== -->
 <script>
-  // ──────────────────────────────────────────────── CONFIG
+  // ==================== CONFIG – must be at the top
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz187kpP3gtvzMtVsMq4COdMp2LR87SifTT-AnMIr-KGnsjNCxnWEP1kshSWVdz7ndE/exec";
 
-  // ──────────────────────────────────────────────── DOM REFERENCES
+  // ==================== DOM REFERENCES
   const canvas          = document.getElementById('canvas');
   const ctx             = canvas.getContext('2d');
   const imageInput      = document.getElementById('imageInput');
@@ -326,16 +326,15 @@
   const statusEl        = document.getElementById('status');
   const resultEl        = document.getElementById('result');
   const mapSelect       = document.getElementById('mapSelect');
-  const zoomTargetGroup = document.getElementById('zoomTargetGroup');
   const zoomInfoGroup   = document.getElementById('zoomInfoGroup');
   const targetMapGroup  = document.getElementById('targetMapGroup');
 
-  // ──────────────────────────────────────────────── STATE
+  // ==================== STATE VARIABLES
   let img              = new Image();
   let points           = [];
-  let currentImageName = "";  // tracks filename of currently loaded image
+  let currentImageName = "";  // tracks the current loaded image filename
 
-  // ──────────────────────────────────────────────── TABS
+  // ==================== TABS SWITCHING
   document.querySelectorAll('.tab-button').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
@@ -347,12 +346,20 @@
       const tabId = btn.dataset.tab;
       console.log(`Tab switched to: ${tabId}`);
 
+      // Load data when relevant tab is opened
       if (tabId === "maps") loadMaps();
       if (tabId === "hotspots") loadMapsIntoDropdown();
     });
   });
 
-  // ──────────────────────────────────────────────── CANVAS FUNCTIONS
+  // ==================== AUTO-LOAD MAPS ON PAGE REFRESH
+  window.addEventListener('load', () => {
+    console.log("Page fully loaded → auto-loading maps");
+    loadMapsIntoDropdown();   // Hotspots dropdown
+    loadMaps();               // Maps tab table
+  });
+
+  // ==================== CANVAS SETUP & DRAWING
   function fitCanvasToImage() {
     if (!img.src || img.naturalWidth <= 0) return;
     canvas.width = img.naturalWidth;
@@ -396,81 +403,15 @@
     });
   }
 
-  // ──────────────────────────────────────────────── UI STATE
+  // ==================== UI UPDATE LOGIC
   function updateUI() {
     const hasImage = !!imageInput.files.length;
     clearBtn.disabled = points.length === 0;
     saveBtn.disabled = !hasImage || !mapSelect.value || !nameInput.value.trim();
     statusEl.textContent = `Points placed: ${points.length}`;
   }
-  async function loadMaps() {
-  console.log("loadMaps() started");
-  try {
-    const r = await fetch(`${SCRIPT_URL}?action=getMaps`);
-    console.log("Maps fetch status:", r.status);
-    const data = await r.json();
-    console.log("Maps data:", data);
 
-    if (data.status === "success") {
-      const tbody = document.querySelector('#mapsTable tbody');
-      tbody.innerHTML = '';
-      if (data.maps.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4">No maps created yet</td></tr>';
-      } else {
-        data.maps.forEach(m => {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `<td>${m.mapId || "—"}</td><td>${m.name || "—"}</td><td>${m.background || "—"}</td><td>${m.description || "—"}</td>`;
-          tbody.appendChild(tr);
-        });
-      }
-    } else {
-      document.querySelector('#mapsTable tbody').innerHTML = '<tr><td colspan="4">Failed to load maps</td></tr>';
-      console.warn("Maps fetch failed:", data.error || "No status");
-    }
-  } catch (err) {
-    document.querySelector('#mapsTable tbody').innerHTML = '<tr><td colspan="4">Error loading maps</td></tr>';
-    console.error("loadMaps error:", err);
-  }
-}
-
-async function loadMapsIntoDropdown() {
-  console.log("loadMapsIntoDropdown() started");
-  try {
-    const r = await fetch(`${SCRIPT_URL}?action=getMaps`);
-    console.log("Dropdown fetch status:", r.status);
-    const data = await r.json();
-    console.log("Dropdown data:", data);
-
-    if (data.status === "success") {
-      mapSelect.innerHTML = '<option value="">— select map —</option>';
-      if (data.maps.length === 0) {
-        mapSelect.innerHTML += '<option disabled>No maps available yet</option>';
-      } else {
-        data.maps.forEach(m => {
-          const opt = document.createElement('option');
-          opt.value = m.mapId;
-          opt.textContent = `${m.name} (${m.mapId})`;
-          mapSelect.appendChild(opt);
-        });
-      }
-    } else {
-      mapSelect.innerHTML = '<option value="">— error loading maps —</option>';
-      console.warn("Dropdown fetch failed:", data.error || "No status");
-    }
-  } catch (err) {
-    mapSelect.innerHTML = '<option value="">— error loading maps —</option>';
-    console.error("Dropdown fetch error:", err);
-  }
-}
-
-  // Load maps on initial page refresh (so table and dropdown are ready immediately)
-window.addEventListener('load', () => {
-  console.log("Page fully loaded → auto-loading maps");
-  loadMapsIntoDropdown();   // for Hotspots dropdown
-  loadMaps();               // for Maps tab table
-});
-
-  // ──────────────────────────────────────────────── IMAGE LOADING
+  // ==================== IMAGE LOADING
   imageInput.addEventListener('change', e => {
     const file = e.target.files[0];
     if (!file) {
@@ -499,7 +440,7 @@ window.addEventListener('load', () => {
     updateUI();
   });
 
-  // ──────────────────────────────────────────────── POINT PLACEMENT
+  // ==================== POINT PLACEMENT ON CLICK
   canvas.addEventListener('click', e => {
     if (!img.src || img.naturalWidth <= 0) {
       statusEl.textContent = "Load an image first";
@@ -519,7 +460,7 @@ window.addEventListener('load', () => {
     redraw();
   });
 
-  // ──────────────────────────────────────────────── CLEAR BUTTON
+  // ==================== CLEAR POINTS BUTTON
   clearBtn.addEventListener('click', () => {
     points = [];
     updateUI();
@@ -527,35 +468,28 @@ window.addEventListener('load', () => {
     resultEl.textContent = '';
   });
 
-// ──────────────────────────────────────────────── TYPE CHANGE HANDLER (updated to fix target dropdown visibility)
-typeSelect.addEventListener('change', () => {
-  const value = typeSelect.value.trim(); // remove any accidental spaces
-  console.log("Selected type value:", value); // debug: see exactly what value is received
+  // ==================== TYPE SELECTION HANDLER
+  typeSelect.addEventListener('change', () => {
+    const value = typeSelect.value.trim();
+    console.log("Selected type:", value); // debug log
 
-  const isZoom = value === "zoom_to";
-  const isFullTransition = value === "Map"; // exact match for your option value="Map"
+    const isZoom = value === "zoom_to";
+    const isFullTransition = value === "Map";
 
-  // Hide old zoom text input (we don't use it anymore for zoom_to)
-  document.getElementById('zoomTargetGroup').style.display = 'none';
+    document.getElementById('zoomInfoGroup').style.display = isZoom ? 'block' : 'none';
+    document.getElementById('targetMapGroup').style.display = isFullTransition ? 'block' : 'none';
 
-  // Show/hide zoom info block
-  document.getElementById('zoomInfoGroup').style.display = isZoom ? 'block' : 'none';
+    if (isZoom) {
+      const infoEl = document.getElementById('zoomInfoText');
+      infoEl.textContent = currentImageName
+        ? `Zoom To Points: define the zoom region on current map image (${currentImageName})`
+        : "Zoom To Points: define the zoom region on current map image";
+    }
 
-  // Show/hide target map dropdown for full scene transition
-  document.getElementById('targetMapGroup').style.display = isFullTransition ? 'block' : 'none';
+    updateUI();
+  });
 
-  // Update zoom info text when visible
-  if (isZoom) {
-    const infoEl = document.getElementById('zoomInfoText');
-    infoEl.textContent = currentImageName
-      ? `Zoom To Points: define the zoom region on current map image (${currentImageName})`
-      : "Zoom To Points: define the zoom region on current map image";
-  }
-
-  updateUI();
-});
-
-  // ──────────────────────────────────────────────── SAVE HOTSPOT
+  // ==================== SAVE HOTSPOT BUTTON
   saveBtn.addEventListener('click', async () => {
     const selectedType = typeSelect.value.trim();
     if (!selectedType) return statusEl.textContent = "Select a type first";
