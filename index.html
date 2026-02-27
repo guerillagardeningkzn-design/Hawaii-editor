@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Game Content Editor</title>
   <style>
-    /* Your existing styles – keep them */
     :root {
       --bg: #0f0f17;
       --surface: #1e293b;
@@ -17,8 +16,6 @@
       --success: #22c55e;
       --danger: #ef4444;
     }
-	
-	
     body { margin: 0; font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 24px; }
     .container { max-width: 1200px; margin: 0 auto; }
     h1 { margin: 0 0 16px; color: #a5b4fc; text-align: center; }
@@ -30,7 +27,6 @@
     .tab-content.active { display: block; }
     .controls { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 20px; }
     .input-group { display: flex; flex-direction: column; min-width: 220px; flex: 1; }
-	.tab-content { display: none;}
     label { margin-bottom: 6px; font-weight: 500; color: #cbd5e1; }
     input, textarea, select { padding: 10px 12px; border-radius: 8px; border: 1px solid #4b5563; background: #111827; color: var(--text); font-size: 1rem; }
     textarea { min-height: 90px; resize: vertical; }
@@ -50,9 +46,6 @@
     table { width: 100%; border-collapse: collapse; margin-top: 16px; }
     th, td { padding: 10px; border: 1px solid #334155; text-align: left; }
     th { background: #111827; }
-	
-	
-	
   </style>
 </head>
 <body>
@@ -91,20 +84,21 @@
       <div class="input-group" id="zoomTargetGroup" style="display:none;">
         <label for="zoomTargetInput">Zoom To Map Image</label>
         <input type="text" id="zoomTargetInput" placeholder="e.g. cellar.jpg">
-		  
       </div>
-		<div class="input-group" id="zoomInfoGroup" style="display:none;">
- 			 <label>Zoom Target</label>
- 			 <div id="zoomInfoText" style="padding: 10px; background: #111827; border-radius: 8px; border: 1px solid #4b5563;">
-   			 Zoom To Points: define the zoom region on current map image
-  		</div>
-</div>		
-		<div class="input-group" id="targetMapGroup" style="display:none;">
- 		 <label for="targetMapSelect">Target Map</label>
-		  <select id="targetMapSelect">
-		    <option value="">— select target —</option>
-		  </select>
-		</div>
+
+      <div class="input-group" id="zoomInfoGroup" style="display:none;">
+        <label>Zoom Target</label>
+        <div id="zoomInfoText" style="padding: 10px; background: #111827; border-radius: 8px; border: 1px solid #4b5563;">
+          Zoom To Points: define the zoom region on current map image
+        </div>
+      </div>
+
+      <div class="input-group" id="targetMapGroup" style="display:none;">
+        <label for="targetMapSelect">Target Map</label>
+        <select id="targetMapSelect">
+          <option value="">— select target —</option>
+        </select>
+      </div>
 
       <div class="input-group">
         <label for="typeSelect">Type</label>
@@ -183,7 +177,6 @@
 </div>
 
 <script>
-	const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz187kpP3gtvzMtVsMq4COdMp2LR87SifTT-AnMIr-KGnsjNCxnWEP1kshSWVdz7ndE/exec";
 // Tab switching + auto-load
 document.querySelectorAll('.tab-button').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -273,63 +266,7 @@ function updateUI() {
   saveBtn.disabled = !hasImage || !mapSelect.value || !nameInput.value.trim();
   statusEl.textContent = `Points placed: ${points.length}`;
 }
-// ──────────────────────────────────────────────── Fetch maps (missing function 1)
-async function loadMaps() {
-  console.log("loadMaps() started");
-  try {
-    const r = await fetch(`${SCRIPT_URL}?action=getMaps`);
-    console.log("Maps fetch status:", r.status);
-    const data = await r.json();
-    console.log("Maps data:", data);
 
-    if (data.status === "success") {
-      const tbody = document.querySelector('#mapsTable tbody');
-      tbody.innerHTML = '';
-      if (data.maps.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4">No maps created yet</td></tr>';
-      } else {
-        data.maps.forEach(m => {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `<td>${m.mapId}</td><td>${m.name}</td><td>${m.background}</td><td>${m.description || ""}</td>`;
-          tbody.appendChild(tr);
-        });
-      }
-    } else {
-      console.warn("Maps fetch failed:", data.error || "No status");
-    }
-  } catch (err) {
-    console.error("loadMaps error:", err);
-  }
-}
-
-// ──────────────────────────────────────────────── Load maps into dropdown (missing function 2)
-async function loadMapsIntoDropdown() {
-  console.log("loadMapsIntoDropdown() started");
-  try {
-    const r = await fetch(`${SCRIPT_URL}?action=getMaps`);
-    console.log("Dropdown fetch status:", r.status);
-    const data = await r.json();
-    console.log("Dropdown data:", data);
-
-    if (data.status === "success") {
-      mapSelect.innerHTML = '<option value="">— select map —</option>';
-      if (data.maps.length === 0) {
-        mapSelect.innerHTML += '<option disabled>No maps yet</option>';
-      } else {
-        data.maps.forEach(m => {
-          const opt = document.createElement('option');
-          opt.value = m.mapId;
-          opt.textContent = `${m.name} (${m.mapId})`;
-          mapSelect.appendChild(opt);
-        });
-      }
-    } else {
-      console.warn("Dropdown fetch failed:", data.error || "No status");
-    }
-  } catch (err) {
-    console.error("Dropdown fetch error:", err);
-  }
-}
 // ──────────────────────────────────────────────── Image loading (track current image name)
 imageInput.addEventListener('change', e => {
   const file = e.target.files[0];
@@ -403,7 +340,9 @@ typeSelect.addEventListener('change', () => {
   updateUI();
 });
 
-// ──────────────────────────────────────────────── Save Hotspot (updated for zoom_to)
+// ──────────────────────────────────────────────── Save Hotspot
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz187kpP3gtvzMtVsMq4COdMp2LR87SifTT-AnMIr-KGnsjNCxnWEP1kshSWVdz7ndE/exec";
+
 async function saveToSheet() {
   const selectedType = typeSelect.value;
   if (!selectedType) return statusEl.textContent = "Select a type first";
@@ -419,17 +358,10 @@ async function saveToSheet() {
 
   if (!nameValue) return statusEl.textContent = "Enter a name";
 
-  // ────────────────────── Target logic ──────────────────────
+  // Special handling for zoom_to: use current image as zoom target
   let zoomTarget = "";
-  let targetMapId = "";
-
   if (selectedType === "zoom_to") {
-    zoomTarget = imageName;  // use current map image filename
-  }
-
-  if (selectedType === "Map") {
-    targetMapId = document.getElementById('targetMapSelect')?.value || "";
-    if (!targetMapId) return statusEl.textContent = "Select a target map for transition";
+    zoomTarget = currentImageName || imageName;
   }
 
   const formData = new FormData();
@@ -438,8 +370,7 @@ async function saveToSheet() {
   formData.append("type", selectedType);
   formData.append("name", nameValue);
   formData.append("description", description);
-  formData.append("zoomTo", zoomTarget);         // for zoom_to: image filename
-  formData.append("targetMapId", targetMapId);   // for Map: selected MapID
+  formData.append("zoomTo", zoomTarget);
   formData.append("imageName", imageName);
   formData.append("pointCount", pointCount.toString());
   formData.append("points", pointsString);
@@ -462,7 +393,6 @@ Type:        ${selectedType}
 Name:        ${nameValue}
 Description: ${description || "(none)"}
 ${selectedType === "zoom_to" ? `Zoom To Image: ${zoomTarget || "(current map image)"}` : ""}
-${selectedType === "Map" ? `Target MapID: ${targetMapId || "(not set)"}` : ""}
 Image:       ${imageName}
 Points:      ${pointCount}
 Expected ID: ${expectedId}
@@ -474,7 +404,6 @@ ${pointsString || "(none)"}`;
     nameInput.value = '';
     descInput.value = '';
     document.getElementById('zoomTargetInput') && (document.getElementById('zoomTargetInput').value = '');
-    document.getElementById('targetMapSelect') && (document.getElementById('targetMapSelect').value = '');
     imageInput.value = '';
     img = new Image(); img.src = '';
     ctx.clearRect(0, 0, canvas.width, canvas.height);
