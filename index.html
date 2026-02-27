@@ -465,11 +465,24 @@
 
   // ==================== UI UPDATE
   function updateUI() {
-    const hasImage = !!imageInput.files.length;
-    clearBtn.disabled = points.length === 0;
-    saveBtn.disabled = !hasImage || !mapSelect.value || !nameInput.value.trim();
-    statusEl.textContent = `Points placed: ${points.length}`;
+  const hasImage = !!imageInput.files.length;
+  const hasSourceMap = !!mapSelect.value;
+  const hasName = !!nameInput.value.trim();
+  const hasType = !!typeSelect.value.trim();
+
+  let isValid = hasImage && hasSourceMap && hasName && hasType;
+
+  // Extra check: if type is "Map", require target map selection
+  if (typeSelect.value.trim() === "Map") {
+    const hasTargetMap = !!document.getElementById('targetMapSelect')?.value.trim();
+    isValid = isValid && hasTargetMap;
   }
+
+  clearBtn.disabled = points.length === 0;
+  saveBtn.disabled = !isValid;
+
+  statusEl.textContent = `Points placed: ${points.length}`;
+}
 
   // ==================== IMAGE LOADING
   imageInput.addEventListener('change', e => {
