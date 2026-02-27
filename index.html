@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Game Content Editor</title>
-
   <!-- ==================== STYLES ==================== -->
   <style>
     :root {
@@ -18,7 +17,6 @@
       --success: #22c55e;
       --danger: #ef4444;
     }
-
     body {
       margin: 0;
       font-family: system-ui, sans-serif;
@@ -27,16 +25,12 @@
       min-height: 100vh;
       padding: 24px;
     }
-
     .container { max-width: 1200px; margin: 0 auto; }
-
     h1 {
       margin: 0 0 16px;
       color: #a5b4fc;
       text-align: center;
     }
-
-    /* Tabs navigation */
     .tabs {
       display: flex;
       border-bottom: 1px solid #334155;
@@ -44,7 +38,6 @@
       overflow-x: auto;
       padding-bottom: 4px;
     }
-
     .tab-button {
       padding: 12px 28px;
       background: transparent;
@@ -55,39 +48,31 @@
       white-space: nowrap;
       transition: all 0.15s;
     }
-
     .tab-button:hover { color: var(--text); }
-
     .tab-button.active {
       color: #a5b4fc;
       border-bottom: 3px solid var(--primary);
       font-weight: 600;
     }
-
     .tab-content { display: none; }
     .tab-content.active { display: block; }
-
-    /* Form controls */
     .controls {
       display: flex;
       flex-wrap: wrap;
       gap: 16px;
       margin-bottom: 20px;
     }
-
     .input-group {
       display: flex;
       flex-direction: column;
       min-width: 220px;
       flex: 1;
     }
-
     label {
       margin-bottom: 6px;
       font-weight: 500;
       color: #cbd5e1;
     }
-
     input, textarea, select {
       padding: 10px 12px;
       border-radius: 8px;
@@ -96,9 +81,7 @@
       color: var(--text);
       font-size: 1rem;
     }
-
     textarea { min-height: 90px; resize: vertical; }
-
     button {
       padding: 10px 20px;
       border: none;
@@ -109,16 +92,13 @@
       transition: all 0.15s;
       height: 40px;
     }
-
     .btn-primary { background: var(--primary); color: white; }
     .btn-primary:hover:not(:disabled) { background: var(--primary-dark); }
     .btn-secondary { background: #475569; color: white; }
     .btn-secondary:hover:not(:disabled) { background: #334155; }
     .btn-clear { background: var(--danger); color: white; }
     .btn-clear:hover:not(:disabled) { background: #dc2626; }
-
     button:disabled { opacity: 0.5; cursor: not-allowed; }
-
     #status {
       padding: 12px 16px;
       border-radius: 8px;
@@ -127,7 +107,6 @@
       font-family: monospace;
       min-height: 1.4em;
     }
-
     .canvas-wrapper {
       position: relative;
       background: #0f172a;
@@ -138,9 +117,7 @@
       max-width: 100%;
       overflow-x: auto;
     }
-
     canvas { display: block; touch-action: none; }
-
     .point-label {
       position: absolute;
       color: #fbbf24;
@@ -150,7 +127,6 @@
       transform: translate(-50%, -150%);
       text-shadow: 0 0 6px black, 1px 1px 3px black;
     }
-
     pre#result {
       background: #111827;
       padding: 16px;
@@ -159,19 +135,16 @@
       white-space: pre-wrap;
       font-size: 0.92rem;
     }
-
     table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 16px;
     }
-
     th, td {
       padding: 10px;
       border: 1px solid #334155;
       text-align: left;
     }
-
     th { background: #111827; }
   </style>
 </head>
@@ -184,51 +157,40 @@
   <div class="tabs">
     <button class="tab-button active" data-tab="hotspots">Hotspots / Touch Areas</button>
     <button class="tab-button" data-tab="maps">Maps / Rooms</button>
-    <button class="tab-button" data-tab="entities">Entities / Objects</button>
+    <button class="tab-button active" data-tab="entities">Entities / Objects</button>
     <button class="tab-button" data-tab="transitions">Transitions</button>
     <button class="tab-button" data-tab="preview">Preview & Export</button>
   </div>
 
   <!-- ==================== HOTSPOTS TAB ==================== -->
-  <div id="hotspots" class="tab-content active">
+  <div id="hotspots" class="tab-content">
     <div class="controls">
-      <!-- Map / Room selection -->
       <div class="input-group">
         <label for="mapSelect">Map / Room</label>
         <select id="mapSelect">
           <option value="">— select map —</option>
         </select>
       </div>
-
-      <!-- Name -->
       <div class="input-group">
         <label for="nameInput">Name</label>
         <input type="text" id="nameInput" placeholder="e.g. Cellar Door, Old Hermit">
       </div>
-
-      <!-- Description -->
       <div class="input-group">
         <label for="descInput">Description</label>
         <textarea id="descInput" placeholder="What happens here..."></textarea>
       </div>
-
-      <!-- Zoom target info (shown only for zoom_to) -->
       <div class="input-group" id="zoomInfoGroup" style="display:none;">
         <label>Zoom Target</label>
         <div id="zoomInfoText" style="padding: 10px; background: #111827; border-radius: 8px; border: 1px solid #4b5563;">
           Zoom To Points: define the zoom region on current map image
         </div>
       </div>
-
-      <!-- Target map for full transition (shown only for Map type) -->
       <div class="input-group" id="targetMapGroup" style="display:none;">
         <label for="targetMapSelect">Target Map</label>
         <select id="targetMapSelect">
           <option value="">— select target —</option>
         </select>
       </div>
-
-      <!-- Type selection -->
       <div class="input-group">
         <label for="typeSelect">Type</label>
         <select id="typeSelect">
@@ -240,24 +202,18 @@
           <option value="zoom_to">Zoom To</option>
         </select>
       </div>
-
-      <!-- Background image upload -->
       <div class="input-group">
         <label for="imageInput">Background Image</label>
         <input type="file" id="imageInput" accept="image/*">
       </div>
-
-      <!-- Buttons -->
       <button id="clearBtn" class="btn-secondary" disabled>Clear Points</button>
       <button id="saveBtn" class="btn-primary" disabled>Save Hotspot</button>
     </div>
 
     <div id="status">Load a background image to start</div>
-
     <div class="canvas-wrapper">
       <canvas id="canvas"></canvas>
     </div>
-
     <pre id="result">Save result will appear here...</pre>
   </div>
 
@@ -294,11 +250,57 @@
     </table>
   </div>
 
-  <!-- ==================== PLACEHOLDER TABS ==================== -->
-  <div id="entities" class="tab-content">
-    <h2>Entities / Objects</h2>
-    <p>Coming soon...</p>
+  <!-- ==================== ENTITIES TAB (new) ==================== -->
+  <div id="entities" class="tab-content active">
+    <h2>Create New Entity / Object</h2>
+    <div class="controls">
+      <div class="input-group">
+        <label for="entityName">Name</label>
+        <input type="text" id="entityName" placeholder="e.g. Rusty Sword, Wise Owl">
+      </div>
+      <div class="input-group">
+        <label for="entityType">Type</label>
+        <select id="entityType">
+          <option value="">— select type —</option>
+          <option value="Item">Item</option>
+          <option value="NPC">NPC</option>
+          <option value="Interactive">Interactive</option>
+          <option value="Decoration">Decoration</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label for="entityDesc">Description</label>
+        <textarea id="entityDesc" placeholder="Behavior, purpose, lore..."></textarea>
+      </div>
+      <div class="input-group">
+        <label for="entitySprite">Sprite / Image</label>
+        <input type="file" id="entitySprite" accept="image/*">
+      </div>
+      <div class="input-group">
+        <label for="entityPosition">Initial Position (X;Y)</label>
+        <input type="text" id="entityPosition" placeholder="e.g. 512;768">
+      </div>
+      <button id="saveEntityBtn" class="btn-primary">Save Entity</button>
+    </div>
+
+    <h3>Existing Entities</h3>
+    <table id="entitiesTable">
+      <thead>
+        <tr>
+          <th>EntityID</th>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Sprite</th>
+          <th>Position</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
   </div>
+
+  <!-- Placeholder tabs unchanged -->
   <div id="transitions" class="tab-content">
     <h2>Transitions & Portals</h2>
     <p>Coming soon...</p>
@@ -311,7 +313,7 @@
 
 <!-- ==================== JAVASCRIPT ==================== -->
 <script>
-  // ==================== CONFIG – must be first
+  // ==================== CONFIG
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz187kpP3gtvzMtVsMq4COdMp2LR87SifTT-AnMIr-KGnsjNCxnWEP1kshSWVdz7ndE/exec";
 
   // ==================== DOM REFERENCES
@@ -335,51 +337,48 @@
   let points           = [];
   let currentImageName = "";
 
-  // ==================== SINGLE MAP FETCH FUNCTION (used for both dropdowns)
+  // ==================== SHARED MAP FETCH & POPULATION
   async function fetchAndPopulateMaps() {
-  console.log("Fetching maps once for all dropdowns + table");
-  try {
-    const r = await fetch(`${SCRIPT_URL}?action=getMaps`);
-    console.log("Fetch status:", r.status);
-    const data = await r.json();
-    console.log("Maps data:", data);
+    console.log("Fetching maps once for all dropdowns + table");
+    try {
+      const r = await fetch(`${SCRIPT_URL}?action=getMaps`);
+      console.log("Fetch status:", r.status);
+      const data = await r.json();
+      console.log("Maps data:", data);
 
-    if (data.status !== "success") {
-      console.warn("Maps fetch failed:", data.error || "No status");
+      if (data.status !== "success") {
+        console.warn("Maps fetch failed:", data.error || "No status");
+        return [];
+      }
+
+      const maps = data.maps || [];
+
+      // Populate dropdowns
+      populateDropdown(mapSelect, maps);
+      populateDropdown(targetMapSelect, maps);
+
+      // Populate Maps tab table
+      const tbody = document.querySelector('#mapsTable tbody');
+      if (tbody) {
+        tbody.innerHTML = '';
+        if (maps.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="4">No maps created yet</td></tr>';
+        } else {
+          maps.forEach(m => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${m.mapId || "—"}</td><td>${m.name || "—"}</td><td>${m.background || "—"}</td><td>${m.description || "—"}</td>`;
+            tbody.appendChild(tr);
+          });
+        }
+      }
+
+      return maps;
+    } catch (err) {
+      console.error("Fetch error:", err);
       return [];
     }
-
-    const maps = data.maps || [];
-
-    // Populate both dropdowns
-    populateDropdown(mapSelect, maps);
-    populateDropdown(targetMapSelect, maps);
-
-    // Also populate the Maps tab table
-    const tbody = document.querySelector('#mapsTable tbody');
-    if (tbody) {
-      tbody.innerHTML = '';
-      if (maps.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4">No maps created yet</td></tr>';
-      } else {
-        maps.forEach(m => {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `<td>${m.mapId || "—"}</td><td>${m.name || "—"}</td><td>${m.background || "—"}</td><td>${m.description || "—"}</td>`;
-          tbody.appendChild(tr);
-        });
-      }
-    } else {
-      console.warn("Maps table not found yet");
-    }
-
-    return maps;
-  } catch (err) {
-    console.error("Fetch error:", err);
-    return [];
   }
-}
 
-  // ==================== POPULATE ANY DROPDOWN WITH MAP LIST
   function populateDropdown(selectElement, maps) {
     selectElement.innerHTML = '<option value="">— select map —</option>';
     if (maps.length === 0) {
@@ -394,17 +393,13 @@
     }
   }
 
-  // ==================== AUTO-LOAD MAPS ONCE ON PAGE REFRESH (for both dropdowns)
+  // ==================== PAGE LOAD – load maps once
   window.addEventListener('load', async () => {
-    console.log("Page fully loaded → loading maps once for all dropdowns");
-    const maps = await fetchAndPopulateMaps();
-
-    // Fill both dropdowns (source and target)
-    populateDropdown(mapSelect, maps);
-    populateDropdown(targetMapSelect, maps); // even if hidden
+    console.log("Page fully loaded → loading maps once");
+    await fetchAndPopulateMaps();
   });
 
-  // ==================== TABS SWITCHING (no reload of maps – already loaded)
+  // ==================== TABS SWITCHING
   document.querySelectorAll('.tab-button').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
@@ -415,11 +410,10 @@
 
       const tabId = btn.dataset.tab;
       console.log(`Tab switched to: ${tabId}`);
-      // No need to reload maps here – already done on page load
     });
   });
 
-  // ==================== REFRESH MAPS AFTER SAVING A NEW MAP
+  // ==================== SAVE NEW MAP
   document.getElementById('saveMapBtn').addEventListener('click', async () => {
     const mapName = document.getElementById('mapName').value.trim();
     const mapDesc = document.getElementById('mapDesc').value.trim();
@@ -440,23 +434,19 @@
       await fetch(SCRIPT_URL, { method: 'POST', body: formData, mode: 'no-cors' });
       alert("Map saved successfully!");
 
-      // Clear form
       document.getElementById('mapName').value = '';
       document.getElementById('mapDesc').value = '';
       document.getElementById('mapBackground').value = '';
 
-      // Reload maps for both dropdowns after new map added
-      const maps = await fetchAndPopulateMaps();
-      populateDropdown(mapSelect, maps);
-      populateDropdown(targetMapSelect, maps);
-
+      // Refresh everything
+      await fetchAndPopulateMaps();
     } catch (err) {
       console.error("Map save failed:", err);
       alert("Failed to save map: " + err.message);
     }
   });
 
-  // ==================== CANVAS FUNCTIONS
+  // ==================== CANVAS & HOTSPOT LOGIC (unchanged from your code)
   function fitCanvasToImage() {
     if (!img.src || img.naturalWidth <= 0) return;
     canvas.width = img.naturalWidth;
@@ -467,30 +457,21 @@
 
   function redraw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    if (img.src) {
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-    }
-
+    if (img.src) ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
     if (points.length >= 2) {
       ctx.strokeStyle = '#22c55e';
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.moveTo(points[0].x, points[0].y);
-      for (let i = 1; i < points.length; i++) {
-        ctx.lineTo(points[i].x, points[i].y);
-      }
+      for (let i = 1; i < points.length; i++) ctx.lineTo(points[i].x, points[i].y);
       ctx.stroke();
     }
-
     document.querySelectorAll('.point-label').forEach(el => el.remove());
-
     points.forEach((p, i) => {
       ctx.fillStyle = '#22c55e';
       ctx.beginPath();
       ctx.arc(p.x, p.y, 6, 0, Math.PI * 2);
       ctx.fill();
-
       const label = document.createElement('div');
       label.className = 'point-label';
       label.textContent = (i + 1).toString();
@@ -500,14 +481,12 @@
     });
   }
 
-  // ==================== UI UPDATE – Save button always active
   function updateUI() {
     clearBtn.disabled = points.length === 0;
-    saveBtn.disabled = false; // always enabled as requested
+    saveBtn.disabled = false; // always enabled
     statusEl.textContent = `Points placed: ${points.length}`;
   }
 
-  // ==================== IMAGE LOADING
   imageInput.addEventListener('change', e => {
     const file = e.target.files[0];
     if (!file) {
@@ -516,10 +495,8 @@
       updateUI();
       return;
     }
-
     currentImageName = file.name;
     statusEl.textContent = `Reading ${file.name} ...`;
-
     const reader = new FileReader();
     reader.onload = ev => {
       img = new Image();
@@ -536,13 +513,11 @@
     updateUI();
   });
 
-  // ==================== POINT PLACEMENT
   canvas.addEventListener('click', e => {
     if (!img.src || img.naturalWidth <= 0) {
       statusEl.textContent = "Load an image first";
       return;
     }
-
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
@@ -550,13 +525,11 @@
     const pointY = Math.round(y);
     const clampedX = Math.max(0, Math.min(pointX, img.naturalWidth));
     const clampedY = Math.max(0, Math.min(pointY, img.naturalHeight));
-
     points.push({ x: clampedX, y: clampedY });
     updateUI();
     redraw();
   });
 
-  // ==================== CLEAR BUTTON
   clearBtn.addEventListener('click', () => {
     points = [];
     updateUI();
@@ -564,50 +537,38 @@
     resultEl.textContent = '';
   });
 
-  // ==================== TYPE CHANGE HANDLER
   typeSelect.addEventListener('change', () => {
     const value = typeSelect.value.trim();
     console.log("Selected type:", value);
-
     const isZoom = value === "zoom_to";
     const isFullTransition = value === "Map";
-
     document.getElementById('zoomInfoGroup').style.display = isZoom ? 'block' : 'none';
     document.getElementById('targetMapGroup').style.display = isFullTransition ? 'block' : 'none';
-
     if (isZoom) {
       const infoEl = document.getElementById('zoomInfoText');
       infoEl.textContent = currentImageName
         ? `Zoom To Points: define the zoom region on current map image (${currentImageName})`
         : "Zoom To Points: define the zoom region on current map image";
     }
-
     updateUI();
   });
 
-  // ==================== SAVE HOTSPOT
   saveBtn.addEventListener('click', async () => {
     const selectedType = typeSelect.value.trim();
     if (!selectedType) return statusEl.textContent = "Select a type first";
-
     const mapId = mapSelect.value;
     if (!mapId) return statusEl.textContent = "Select a map first";
-
     const nameValue = nameInput.value.trim();
     const description = descInput.value.trim();
     const imageName = imageInput.files[0]?.name || `entry-${Date.now()}`;
     const pointCount = points.length;
     const pointsString = pointCount > 0 ? points.map(p => `${p.x};${p.y}`).join('\n') : "";
-
     if (!nameValue) return statusEl.textContent = "Enter a name";
-
     let zoomTarget = "";
     if (selectedType === "zoom_to") {
       zoomTarget = imageName;
     }
-
     const targetMapId = document.getElementById('targetMapSelect')?.value || "";
-
     const formData = new FormData();
     formData.append("sheet", "Hotspots");
     formData.append("mapId", mapId);
@@ -621,15 +582,11 @@
     formData.append("points", pointsString);
     formData.append("pointsJson", JSON.stringify(points.map(p => [p.x, p.y])));
     formData.append("hasPoints", (pointCount > 0).toString());
-
     statusEl.textContent = `Saving ${selectedType} "${nameValue}" (${pointCount} pts)...`;
-
     try {
       await fetch(SCRIPT_URL, { method: 'POST', body: formData, mode: 'no-cors' });
-
       const prefix = { Map:"MAP-", Marker:"MRK-", NPC:"NPC-", Pickup:"PCK-", zoom_to:"ZOM-" }[selectedType] || "UNK-";
       const expectedId = prefix + String(pointCount + 1).padStart(3, '0');
-
       statusEl.textContent = `Saved "${nameValue}" as ${selectedType} (ID ≈ ${expectedId}) on map ${mapId}`;
       resultEl.textContent = 
 `Saved hotspot:
@@ -642,15 +599,12 @@ ${selectedType === "Map" ? `Target MapID: ${targetMapId || "(not set)"}` : ""}
 Image:       ${imageName}
 Points:      ${pointCount}
 Expected ID: ${expectedId}
-
 Points:
 ${pointsString || "(none)"}`;
-
     } catch (err) {
       console.error("Hotspot save failed:", err);
       statusEl.textContent += " — Save failed (check console)";
     } finally {
-      // Always reset UI
       nameInput.value = '';
       descInput.value = '';
       imageInput.value = '';
