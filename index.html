@@ -195,7 +195,7 @@ document.querySelectorAll('.tab-button').forEach(btn => {
     }
     if (tabId === "hotspots") {
       console.log("Hotspots tab opened → loading source maps...");
-      loadMapsIntoDropdown('mapSelect');     // source map
+      loadMapsIntoDropdown('mapSelect');
     }
   });
 });
@@ -218,11 +218,12 @@ const saveBtn      = document.getElementById('saveBtn');
 const statusEl     = document.getElementById('status');
 const resultEl     = document.getElementById('result');
 const mapSelect    = document.getElementById('mapSelect');
-const targetMapGroup = document.getElementById('targetMapGroup');
-const targetMapSelect = document.getElementById('targetMapSelect');
+const zoomTargetGroup = document.getElementById('zoomTargetGroup');
+const zoomInfoGroup = document.getElementById('zoomInfoGroup');
 
 let img     = new Image();
 let points  = [];
+let currentImageName = ""; // track current loaded image name
 
 // ──────────────────────────────────────────────── Canvas functions
 function fitCanvasToImage() {
@@ -254,7 +255,7 @@ function redraw() {
     label.className = 'point-label';
     label.textContent = (i + 1).toString();
     label.style.left = p.x + 'px';
-    label.style.top  = p.y + 'px';
+    label.style.top = p.y + 'px';
     canvas.parentElement.appendChild(label);
   });
 }
@@ -266,15 +267,19 @@ function updateUI() {
   statusEl.textContent = `Points placed: ${points.length}`;
 }
 
-// ──────────────────────────────────────────────── Image loading
+// ──────────────────────────────────────────────── Image loading (track current image name)
 imageInput.addEventListener('change', e => {
   const file = e.target.files[0];
   if (!file) {
     statusEl.textContent = "No file selected";
+    currentImageName = "";
     updateUI();
     return;
   }
+
+  currentImageName = file.name; // track for zoom_to
   statusEl.textContent = `Reading ${file.name} ...`;
+
   const reader = new FileReader();
   reader.onload = ev => {
     img = new Image();
@@ -317,56 +322,25 @@ clearBtn.addEventListener('click', () => {
   resultEl.textContent = '';
 });
 
-// ──────────────────────────────────────────────── Show/hide zoom & target map fields
+// ──────────────────────────────────────────────── Show/hide zoom & target fields
 typeSelect.addEventListener('change', () => {
   const value = typeSelect.value;
   const isZoom = value === "zoom_to";
-  const isFullTransition = value === "Map";
 
-  document.getElementById('zoomTargetGroup').style.display = isZoom ? 'block' : 'none';
-  document.getElementById('targetMapGroup').style.display = isFullTransition ? 'block' : 'none';
+  document.getElementById('zoomTargetGroup').style.display = 'none'; // hide old text input
+  document.getElementById('zoomInfoGroup').style.display = isZoom ? 'block' : 'none';
 
-  if (isFullTransition && targetMapSelect.options.length <= 1) {
-    loadMapsIntoDropdown('targetMapSelect');
+  if (isZoom) {
+    const infoEl = document.getElementById('zoomInfoText');
+    infoEl.textContent = currentImageName
+      ? `Zoom To Points: define the zoom region on current map image (${currentImageName})`
+      : "Zoom To Points: define the zoom region on current map image";
   }
 
   updateUI();
 });
 
-// ──────────────────────────────────────────────── Fetch maps (used for both dropdowns)
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz187kpP3gtvzMtVsMq4COdMp2LR87SifTT-AnMIr-KGnsjNCxnWEP1kshSWVdz7ndE/exec";
-
-async function loadMapsIntoDropdown(selectId = 'mapSelect') {
-  console.log(`Loading maps into dropdown: ${selectId}`);
-  try {
-    const r = await fetch(`${SCRIPT_URL}?action=getMaps`);
-    console.log(`Fetch status for ${selectId}:`, r.status);
-    const data = await r.json();
-    console.log(`Maps data for ${selectId}:`, data);
-
-    const select = document.getElementById(selectId);
-    select.innerHTML = '<option value="">— select map —</option>';
-
-    if (data.status === "success") {
-      if (data.maps.length === 0) {
-        select.innerHTML += '<option disabled>No maps created yet</option>';
-      } else {
-        data.maps.forEach(m => {
-          const opt = document.createElement('option');
-          opt.value = m.mapId;
-          opt.textContent = `${m.name} (${m.mapId})`;
-          select.appendChild(opt);
-        });
-      }
-    } else {
-      console.warn(`Maps fetch failed for ${selectId}:`, data.error || "No status");
-    }
-  } catch (err) {
-    console.error(`Fetch error for ${selectId}:`, err);
-  }
-}
-
-// ──────────────────────────────────────────────── Save Hotspot
+// ──────────────────────────────────────────────── Save Hotspot (updated for zoom_to)
 async function saveToSheet() {
   const selectedType = typeSelect.value;
   if (!selectedType) return statusEl.textContent = "Select a type first";
@@ -376,13 +350,17 @@ async function saveToSheet() {
 
   const nameValue = nameInput.value.trim();
   const description = descInput.value.trim();
-  const zoomTarget = selectedType === "zoom_to" ? document.getElementById('zoomTargetInput')?.value.trim() || "" : "";
-  const targetMapId = selectedType === "Map" ? document.getElementById('targetMapSelect')?.value || "" : "";
   const imageName = imageInput.files[0]?.name || `entry-${Date.now()}`;
   const pointCount = points.length;
   const pointsString = pointCount > 0 ? points.map(p => `${p.x};${p.y}`).join('\n') : "";
 
   if (!nameValue) return statusEl.textContent = "Enter a name";
+
+  // Special handling for zoom_to: use current image as zoom target
+  let zoomTarget = "";
+  if (selectedType === "zoom_to") {
+    zoomTarget = currentImageName || imageName;
+  }
 
   const formData = new FormData();
   formData.append("sheet", "Hotspots");
@@ -391,14 +369,13 @@ async function saveToSheet() {
   formData.append("name", nameValue);
   formData.append("description", description);
   formData.append("zoomTo", zoomTarget);
-  formData.append("targetMapId", targetMapId); // new field for full scene transition
   formData.append("imageName", imageName);
   formData.append("pointCount", pointCount.toString());
   formData.append("points", pointsString);
   formData.append("pointsJson", JSON.stringify(points.map(p => [p.x, p.y])));
   formData.append("hasPoints", (pointCount > 0).toString());
 
-  statusEl.textContent = `Saving hotspot on map ${mapId} ...`;
+  statusEl.textContent = `Saving ${selectedType} "${nameValue}" (${pointCount} pts)...`;
 
   try {
     await fetch(SCRIPT_URL, { method: 'POST', body: formData, mode: 'no-cors' });
@@ -413,8 +390,7 @@ MapID:       ${mapId}
 Type:        ${selectedType}
 Name:        ${nameValue}
 Description: ${description || "(none)"}
-${selectedType === "zoom_to" ? `Zoom To:     ${zoomTarget || "(not specified)"}` : ""}
-${selectedType === "Map" ? `Target MapID: ${targetMapId || "(not set)"}` : ""}
+${selectedType === "zoom_to" ? `Zoom To Image: ${zoomTarget || "(current map image)"}` : ""}
 Image:       ${imageName}
 Points:      ${pointCount}
 Expected ID: ${expectedId}
@@ -426,7 +402,6 @@ ${pointsString || "(none)"}`;
     nameInput.value = '';
     descInput.value = '';
     document.getElementById('zoomTargetInput') && (document.getElementById('zoomTargetInput').value = '');
-    document.getElementById('targetMapSelect') && (document.getElementById('targetMapSelect').value = '');
     imageInput.value = '';
     img = new Image(); img.src = '';
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -442,7 +417,6 @@ ${pointsString || "(none)"}`;
   }
 }
 
-// Attach save button
 saveBtn.addEventListener('click', saveToSheet);
 </script>
 </body>
