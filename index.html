@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Game Content Editor</title>
+
   <!-- ==================== STYLES ==================== -->
   <style>
     :root {
@@ -157,13 +158,13 @@
   <div class="tabs">
     <button class="tab-button active" data-tab="hotspots">Hotspots / Touch Areas</button>
     <button class="tab-button" data-tab="maps">Maps / Rooms</button>
-    <button class="tab-button active" data-tab="entities">Entities / Objects</button>
+    <button class="tab-button" data-tab="entities">Entities / Objects</button>
     <button class="tab-button" data-tab="transitions">Transitions</button>
     <button class="tab-button" data-tab="preview">Preview & Export</button>
   </div>
 
   <!-- ==================== HOTSPOTS TAB ==================== -->
-  <div id="hotspots" class="tab-content">
+  <div id="hotspots" class="tab-content active">
     <div class="controls">
       <div class="input-group">
         <label for="mapSelect">Map / Room</label>
@@ -250,8 +251,8 @@
     </table>
   </div>
 
-  <!-- ==================== ENTITIES TAB (new) ==================== -->
-  <div id="entities" class="tab-content active">
+  <!-- ==================== ENTITIES TAB ==================== -->
+  <div id="entities" class="tab-content">
     <h2>Create New Entity / Object</h2>
     <div class="controls">
       <div class="input-group">
@@ -300,7 +301,7 @@
     </table>
   </div>
 
-  <!-- Placeholder tabs unchanged -->
+  <!-- Placeholder tabs -->
   <div id="transitions" class="tab-content">
     <h2>Transitions & Portals</h2>
     <p>Coming soon...</p>
@@ -313,7 +314,7 @@
 
 <!-- ==================== JAVASCRIPT ==================== -->
 <script>
-  // ==================== CONFIG
+  // ==================== CONFIG – must be first
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz187kpP3gtvzMtVsMq4COdMp2LR87SifTT-AnMIr-KGnsjNCxnWEP1kshSWVdz7ndE/exec";
 
   // ==================== DOM REFERENCES
@@ -353,11 +354,9 @@
 
       const maps = data.maps || [];
 
-      // Populate dropdowns
       populateDropdown(mapSelect, maps);
       populateDropdown(targetMapSelect, maps);
 
-      // Populate Maps tab table
       const tbody = document.querySelector('#mapsTable tbody');
       if (tbody) {
         tbody.innerHTML = '';
@@ -438,7 +437,6 @@
       document.getElementById('mapDesc').value = '';
       document.getElementById('mapBackground').value = '';
 
-      // Refresh everything
       await fetchAndPopulateMaps();
     } catch (err) {
       console.error("Map save failed:", err);
@@ -446,7 +444,7 @@
     }
   });
 
-  // ==================== CANVAS & HOTSPOT LOGIC (unchanged from your code)
+  // ==================== CANVAS & HOTSPOT LOGIC (unchanged)
   function fitCanvasToImage() {
     if (!img.src || img.naturalWidth <= 0) return;
     canvas.width = img.naturalWidth;
