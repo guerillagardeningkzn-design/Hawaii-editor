@@ -528,26 +528,59 @@
     resultEl.textContent = '';
   });
 
-  // ==================== TYPE CHANGE HANDLER
-  typeSelect.addEventListener('change', () => {
-    const value = typeSelect.value.trim();
-    console.log("Selected type:", value);
+  // ──────────────────────────────────────────────── TYPE CHANGE HANDLER
+typeSelect.addEventListener('change', () => {
+  const value = typeSelect.value.trim();
+  console.log("Selected type:", value); // debug log
 
-    const isZoom = value === "zoom_to";
-    const isFullTransition = value === "Map";
+  const isZoom = value === "zoom_to";
+  const isFullTransition = value === "Map";
 
-    document.getElementById('zoomInfoGroup').style.display = isZoom ? 'block' : 'none';
-    document.getElementById('targetMapGroup').style.display = isFullTransition ? 'block' : 'none';
+  document.getElementById('zoomInfoGroup').style.display = isZoom ? 'block' : 'none';
+  document.getElementById('targetMapGroup').style.display = isFullTransition ? 'block' : 'none';
 
-    if (isZoom) {
-      const infoEl = document.getElementById('zoomInfoText');
-      infoEl.textContent = currentImageName
-        ? `Zoom To Points: define the zoom region on current map image (${currentImageName})`
-        : "Zoom To Points: define the zoom region on current map image";
+  // When "Map" is selected, populate the target dropdown if it's empty
+  if (isFullTransition) {
+    const targetSelect = document.getElementById('targetMapSelect');
+    // Only populate if it hasn't been filled yet (avoids duplicates)
+    if (targetSelect.options.length <= 1) {
+      console.log("Populating target map dropdown for full transition");
+      // Reuse the same fetch logic as loadMapsIntoDropdown
+      fetch(`${SCRIPT_URL}?action=getMaps`)
+        .then(r => r.json())
+        .then(data => {
+          if (data.status === "success") {
+            targetSelect.innerHTML = '<option value="">— select target map —</option>';
+            if (data.maps.length === 0) {
+              targetSelect.innerHTML += '<option disabled>No maps available</option>';
+            } else {
+              data.maps.forEach(m => {
+                const opt = document.createElement('option');
+                opt.value = m.mapId;
+                opt.textContent = `${m.name} (${m.mapId})`;
+                targetSelect.appendChild(opt);
+              });
+            }
+          } else {
+            targetSelect.innerHTML = '<option value="">— error loading targets —</option>';
+          }
+        })
+        .catch(err => {
+          console.error("Failed to populate target dropdown:", err);
+          targetSelect.innerHTML = '<option value="">— error loading targets —</option>';
+        });
     }
+  }
 
-    updateUI();
-  });
+  if (isZoom) {
+    const infoEl = document.getElementById('zoomInfoText');
+    infoEl.textContent = currentImageName
+      ? `Zoom To Points: define the zoom region on current map image (${currentImageName})`
+      : "Zoom To Points: define the zoom region on current map image";
+  }
+
+  updateUI();
+});
 
   // ==================== SAVE HOTSPOT
   saveBtn.addEventListener('click', async () => {
