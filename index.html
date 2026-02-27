@@ -337,24 +337,47 @@
 
   // ==================== SINGLE MAP FETCH FUNCTION (used for both dropdowns)
   async function fetchAndPopulateMaps() {
-    console.log("Fetching maps once for all dropdowns");
-    try {
-      const r = await fetch(`${SCRIPT_URL}?action=getMaps`);
-      console.log("Fetch status:", r.status);
-      const data = await r.json();
-      console.log("Maps data:", data);
+  console.log("Fetching maps once for all dropdowns + table");
+  try {
+    const r = await fetch(`${SCRIPT_URL}?action=getMaps`);
+    console.log("Fetch status:", r.status);
+    const data = await r.json();
+    console.log("Maps data:", data);
 
-      if (data.status !== "success") {
-        console.warn("Maps fetch failed:", data.error || "No status");
-        return [];
-      }
-
-      return data.maps || [];
-    } catch (err) {
-      console.error("Fetch error:", err);
+    if (data.status !== "success") {
+      console.warn("Maps fetch failed:", data.error || "No status");
       return [];
     }
+
+    const maps = data.maps || [];
+
+    // Populate both dropdowns
+    populateDropdown(mapSelect, maps);
+    populateDropdown(targetMapSelect, maps);
+
+    // Also populate the Maps tab table
+    const tbody = document.querySelector('#mapsTable tbody');
+    if (tbody) {
+      tbody.innerHTML = '';
+      if (maps.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4">No maps created yet</td></tr>';
+      } else {
+        maps.forEach(m => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td>${m.mapId || "—"}</td><td>${m.name || "—"}</td><td>${m.background || "—"}</td><td>${m.description || "—"}</td>`;
+          tbody.appendChild(tr);
+        });
+      }
+    } else {
+      console.warn("Maps table not found yet");
+    }
+
+    return maps;
+  } catch (err) {
+    console.error("Fetch error:", err);
+    return [];
   }
+}
 
   // ==================== POPULATE ANY DROPDOWN WITH MAP LIST
   function populateDropdown(selectElement, maps) {
