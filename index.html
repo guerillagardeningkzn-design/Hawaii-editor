@@ -463,6 +463,13 @@ async function loadMapsIntoDropdown() {
   }
 }
 
+  // Load maps on initial page refresh (so table and dropdown are ready immediately)
+window.addEventListener('load', () => {
+  console.log("Page fully loaded → auto-loading maps");
+  loadMapsIntoDropdown();   // for Hotspots dropdown
+  loadMaps();               // for Maps tab table
+});
+
   // ──────────────────────────────────────────────── IMAGE LOADING
   imageInput.addEventListener('change', e => {
     const file = e.target.files[0];
