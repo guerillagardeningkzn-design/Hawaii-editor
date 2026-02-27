@@ -659,6 +659,39 @@ ${pointsString || "(none)"}`;
       statusEl.textContent += " — Ready for next hotspot";
     }
   });
+  // ==================== SAVE NEW MAP (Maps tab)
+document.getElementById('saveMapBtn').addEventListener('click', async () => {
+  const mapName = document.getElementById('mapName').value.trim();
+  const mapDesc = document.getElementById('mapDesc').value.trim();
+  const file = document.getElementById('mapBackground').files[0];
+
+  if (!mapName) {
+    alert("Please enter a map name");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("sheet", "Maps");
+  formData.append("name", mapName);
+  formData.append("description", mapDesc);
+  if (file) formData.append("backgroundImage", file.name);
+
+  try {
+    await fetch(SCRIPT_URL, { method: 'POST', body: formData, mode: 'no-cors' });
+    alert("Map saved successfully!");
+    
+    // Clear form
+    document.getElementById('mapName').value = '';
+    document.getElementById('mapDesc').value = '';
+    document.getElementById('mapBackground').value = '';
+
+    // Refresh table
+    loadMaps();
+  } catch (err) {
+    console.error("Map save failed:", err);
+    alert("Failed to save map: " + err.message);
+  }
+});
 </script>
 </body>
 </html>
