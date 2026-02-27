@@ -252,54 +252,90 @@
   </div>
 
   <!-- ==================== ENTITIES TAB ==================== -->
-  <div id="entities" class="tab-content">
-    <h2>Create New Entity / Object</h2>
-    <div class="controls">
-      <div class="input-group">
-        <label for="entityName">Name</label>
-        <input type="text" id="entityName" placeholder="e.g. Rusty Sword, Wise Owl">
-      </div>
-      <div class="input-group">
-        <label for="entityType">Type</label>
-        <select id="entityType">
-          <option value="">— select type —</option>
-          <option value="Item">Item</option>
-          <option value="NPC">NPC</option>
-          <option value="Interactive">Interactive</option>
-          <option value="Decoration">Decoration</option>
-          <option value="Other">Other</option>
-        </select>
-      </div>
-      <div class="input-group">
-        <label for="entityDesc">Description</label>
-        <textarea id="entityDesc" placeholder="Behavior, purpose, lore..."></textarea>
-      </div>
-      <div class="input-group">
-        <label for="entitySprite">Sprite / Image</label>
-        <input type="file" id="entitySprite" accept="image/*">
-      </div>
-      <div class="input-group">
-        <label for="entityPosition">Initial Position (X;Y)</label>
-        <input type="text" id="entityPosition" placeholder="e.g. 512;768">
-      </div>
-      <button id="saveEntityBtn" class="btn-primary">Save Entity</button>
+<div id="entities" class="tab-content">
+  <h2>Create New Entity / Object</h2>
+  <div class="controls">
+    <div class="input-group">
+      <label for="entityName">Name</label>
+      <input type="text" id="entityName" placeholder="e.g. Rusty Sword, Wise Owl">
     </div>
-
-    <h3>Existing Entities</h3>
-    <table id="entitiesTable">
-      <thead>
-        <tr>
-          <th>EntityID</th>
-          <th>Name</th>
-          <th>Type</th>
-          <th>Sprite</th>
-          <th>Position</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+    <div class="input-group">
+      <label for="entityType">Type</label>
+      <select id="entityType">
+        <option value="">— select type —</option>
+        <option value="Item">Item</option>
+        <option value="NPC">NPC</option>
+        <option value="Interactive">Interactive</option>
+        <option value="Decoration">Decoration</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+    <div class="input-group">
+      <label for="entityDescription">Description</label>
+      <textarea id="entityDescription" placeholder="Behavior, purpose, lore..."></textarea>
+    </div>
+    <div class="input-group">
+      <label for="spriteSheetIdle">Idle Sprite Sheet</label>
+      <input type="file" id="spriteSheetIdle" accept="image/*">
+    </div>
+    <div class="input-group">
+      <label for="spriteSheetWalk">Walk Sprite Sheet</label>
+      <input type="file" id="spriteSheetWalk" accept="image/*">
+    </div>
+    <div class="input-group">
+      <label for="frameCount">Frame Count</label>
+      <input type="number" id="frameCount" min="1" placeholder="e.g. 8">
+    </div>
+    <div class="input-group">
+      <label for="idleFrameRate">Idle Frame Rate</label>
+      <input type="number" id="idleFrameRate" step="0.1" placeholder="e.g. 0.15">
+    </div>
+    <div class="input-group">
+      <label for="initialMapID">Initial Map ID</label>
+      <input type="text" id="initialMapID" placeholder="e.g. MAP-001">
+    </div>
+    <div class="input-group">
+      <label for="initialX">Initial X</label>
+      <input type="number" id="initialX" placeholder="e.g. 512">
+    </div>
+    <div class="input-group">
+      <label for="initialY">Initial Y</label>
+      <input type="number" id="initialY" placeholder="e.g. 768">
+    </div>
+    <div class="input-group">
+      <label for="collisionWidth">Collision Width</label>
+      <input type="number" id="collisionWidth" placeholder="e.g. 32">
+    </div>
+    <div class="input-group">
+      <label for="collisionHeight">Collision Height</label>
+      <input type="number" id="collisionHeight" placeholder="e.g. 48">
+    </div>
+    <button id="saveEntityBtn" class="btn-primary">Save Entity</button>
   </div>
+
+  <h3>Existing Entities</h3>
+  <table id="entitiesTable">
+    <thead>
+      <tr>
+        <th>EntityID</th>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+        <th>Sprite Idle</th>
+        <th>Sprite Walk</th>
+        <th>Frames</th>
+        <th>Idle FPS</th>
+        <th>MapID</th>
+        <th>X</th>
+        <th>Y</th>
+        <th>Coll. W</th>
+        <th>Coll. H</th>
+        <th>Created</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
 
   <!-- Placeholder tabs -->
   <div id="transitions" class="tab-content">
@@ -646,13 +682,20 @@ async function loadEntities() {
   }
 }
 
-  // ==================== SAVE NEW ENTITY
+ // ==================== SAVE NEW ENTITY
 document.getElementById('saveEntityBtn').addEventListener('click', async () => {
-  const name = document.getElementById('entityName').value.trim();
-  const type = document.getElementById('entityType').value.trim();
-  const desc = document.getElementById('entityDesc').value.trim();
-  const position = document.getElementById('entityPosition').value.trim();
-  const file = document.getElementById('entitySprite').files[0];
+  const name           = document.getElementById('entityName').value.trim();
+  const type           = document.getElementById('entityType').value.trim();
+  const description    = document.getElementById('entityDescription').value.trim();
+  const spriteIdle     = document.getElementById('spriteSheetIdle').files[0]?.name || "";
+  const spriteWalk     = document.getElementById('spriteSheetWalk').files[0]?.name || "";
+  const frameCount     = document.getElementById('frameCount').value.trim();
+  const idleFrameRate  = document.getElementById('idleFrameRate').value.trim();
+  const initialMapID   = document.getElementById('initialMapID').value.trim();
+  const initialX       = document.getElementById('initialX').value.trim();
+  const initialY       = document.getElementById('initialY').value.trim();
+  const collisionWidth = document.getElementById('collisionWidth').value.trim();
+  const collisionHeight = document.getElementById('collisionHeight').value.trim();
 
   if (!name || !type) {
     alert("Name and Type are required");
@@ -661,27 +704,41 @@ document.getElementById('saveEntityBtn').addEventListener('click', async () => {
 
   const formData = new FormData();
   formData.append("sheet", "Entities");
-  formData.append("name", name);
-  formData.append("type", type);
-  formData.append("description", desc);
-  formData.append("position", position);
-  if (file) formData.append("sprite", file.name);
+  formData.append("Name", name);
+  formData.append("Type", type);
+  formData.append("Description", description);
+  formData.append("SpriteSheetIdle", spriteIdle);
+  formData.append("SpriteSheetWalk", spriteWalk);
+  formData.append("FrameCount", frameCount);
+  formData.append("IdleFrameRate", idleFrameRate);
+  formData.append("InitialMapID", initialMapID);
+  formData.append("InitialX", initialX);
+  formData.append("InitialY", initialY);
+  formData.append("CollisionWidth", collisionWidth);
+  formData.append("CollisionHeight", collisionHeight);
 
-  console.log("Sending entity:", { name, type, desc, position, sprite: file?.name });
+  console.log("Sending entity data:", Object.fromEntries(formData));
 
   try {
     await fetch(SCRIPT_URL, { method: 'POST', body: formData, mode: 'no-cors' });
-    alert("Entity saved!");
-    
+    alert("Entity saved successfully!");
+
     // Clear form
     document.getElementById('entityName').value = '';
     document.getElementById('entityType').value = '';
-    document.getElementById('entityDesc').value = '';
-    document.getElementById('entityPosition').value = '';
-    document.getElementById('entitySprite').value = '';
+    document.getElementById('entityDescription').value = '';
+    document.getElementById('spriteSheetIdle').value = '';
+    document.getElementById('spriteSheetWalk').value = '';
+    document.getElementById('frameCount').value = '';
+    document.getElementById('idleFrameRate').value = '';
+    document.getElementById('initialMapID').value = '';
+    document.getElementById('initialX').value = '';
+    document.getElementById('initialY').value = '';
+    document.getElementById('collisionWidth').value = '';
+    document.getElementById('collisionHeight').value = '';
 
   } catch (err) {
-    console.error("Entity save error:", err);
+    console.error("Entity save failed:", err);
     alert("Save failed – check console");
   }
 });
