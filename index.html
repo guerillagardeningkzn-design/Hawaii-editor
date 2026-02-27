@@ -311,10 +311,10 @@
 
 <!-- ==================== JAVASCRIPT ==================== -->
 <script>
-  // ==================== CONFIG ====================
+  // ──────────────────────────────────────────────── CONFIG
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz187kpP3gtvzMtVsMq4COdMp2LR87SifTT-AnMIr-KGnsjNCxnWEP1kshSWVdz7ndE/exec";
 
-  // ==================== DOM REFERENCES ====================
+  // ──────────────────────────────────────────────── DOM REFERENCES
   const canvas          = document.getElementById('canvas');
   const ctx             = canvas.getContext('2d');
   const imageInput      = document.getElementById('imageInput');
@@ -328,13 +328,14 @@
   const mapSelect       = document.getElementById('mapSelect');
   const zoomTargetGroup = document.getElementById('zoomTargetGroup');
   const zoomInfoGroup   = document.getElementById('zoomInfoGroup');
+  const targetMapGroup  = document.getElementById('targetMapGroup');
 
-  // ==================== STATE ====================
+  // ──────────────────────────────────────────────── STATE
   let img              = new Image();
   let points           = [];
   let currentImageName = "";  // tracks filename of currently loaded image
 
-  // ==================== TABS ====================
+  // ──────────────────────────────────────────────── TABS
   document.querySelectorAll('.tab-button').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
@@ -346,19 +347,12 @@
       const tabId = btn.dataset.tab;
       console.log(`Tab switched to: ${tabId}`);
 
-      // Load maps when relevant tab is opened
       if (tabId === "maps") loadMaps();
       if (tabId === "hotspots") loadMapsIntoDropdown();
     });
   });
 
-  // ==================== INITIAL LOAD ====================
-  window.addEventListener('load', () => {
-    console.log("Page loaded → initial load of maps for Hotspots dropdown");
-    loadMapsIntoDropdown();
-  });
-
-  // ==================== CANVAS FUNCTIONS ====================
+  // ──────────────────────────────────────────────── CANVAS FUNCTIONS
   function fitCanvasToImage() {
     if (!img.src || img.naturalWidth <= 0) return;
     canvas.width = img.naturalWidth;
@@ -397,12 +391,12 @@
       label.className = 'point-label';
       label.textContent = (i + 1).toString();
       label.style.left = p.x + 'px';
-      label.style.top  = p.y + 'px';
+      label.style.top = p.y + 'px';
       canvas.parentElement.appendChild(label);
     });
   }
 
-  // ==================== UI STATE ====================
+  // ──────────────────────────────────────────────── UI STATE
   function updateUI() {
     const hasImage = !!imageInput.files.length;
     clearBtn.disabled = points.length === 0;
@@ -410,7 +404,7 @@
     statusEl.textContent = `Points placed: ${points.length}`;
   }
 
-  // ==================== IMAGE LOADING ====================
+  // ──────────────────────────────────────────────── IMAGE LOADING
   imageInput.addEventListener('change', e => {
     const file = e.target.files[0];
     if (!file) {
@@ -439,7 +433,7 @@
     updateUI();
   });
 
-  // ==================== POINT PLACEMENT ====================
+  // ──────────────────────────────────────────────── POINT PLACEMENT
   canvas.addEventListener('click', e => {
     if (!img.src || img.naturalWidth <= 0) {
       statusEl.textContent = "Load an image first";
@@ -459,7 +453,7 @@
     redraw();
   });
 
-  // ==================== CLEAR BUTTON ====================
+  // ──────────────────────────────────────────────── CLEAR BUTTON
   clearBtn.addEventListener('click', () => {
     points = [];
     updateUI();
@@ -467,13 +461,17 @@
     resultEl.textContent = '';
   });
 
-  // ==================== TYPE CHANGE HANDLER ====================
+  // ──────────────────────────────────────────────── TYPE CHANGE HANDLER (FIXED HERE)
   typeSelect.addEventListener('change', () => {
-    const value = typeSelect.value;
+    const value = typeSelect.value.trim(); // trim to avoid whitespace issues
+    console.log("Selected type:", value); // debug to see exact value
+
     const isZoom = value === "zoom_to";
+    const isFullTransition = value === "Map"; // or value.toLowerCase() === "map" for extra safety
 
     document.getElementById('zoomTargetGroup').style.display = 'none';
     document.getElementById('zoomInfoGroup').style.display = isZoom ? 'block' : 'none';
+    document.getElementById('targetMapGroup').style.display = isFullTransition ? 'block' : 'none';
 
     if (isZoom) {
       const infoEl = document.getElementById('zoomInfoText');
@@ -485,71 +483,9 @@
     updateUI();
   });
 
-  // ==================== LOAD MAPS INTO TABLE (Maps tab) ====================
-  async function loadMaps() {
-    console.log("loadMaps() started – fetching from server");
-    try {
-      const r = await fetch(`${SCRIPT_URL}?action=getMaps`);
-      console.log("Maps fetch status:", r.status);
-      const data = await r.json();
-      console.log("Maps data received:", data);
-
-      if (data.status === "success") {
-        const tbody = document.querySelector('#mapsTable tbody');
-        tbody.innerHTML = '';
-        if (data.maps.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="4">No maps created yet – create one above</td></tr>';
-        } else {
-          data.maps.forEach(m => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `<td>${m.mapId || "—"}</td><td>${m.name || "—"}</td><td>${m.background || "—"}</td><td>${m.description || "—"}</td>`;
-            tbody.appendChild(tr);
-          });
-        }
-      } else {
-        document.querySelector('#mapsTable tbody').innerHTML = '<tr><td colspan="4">Failed to load maps – check connection</td></tr>';
-        console.warn("Maps fetch failed:", data.error || "No status");
-      }
-    } catch (err) {
-      document.querySelector('#mapsTable tbody').innerHTML = '<tr><td colspan="4">Error loading maps</td></tr>';
-      console.error("loadMaps fetch error:", err);
-    }
-  }
-
-  // ==================== LOAD MAPS INTO DROPDOWN (Hotspots tab) ====================
-  async function loadMapsIntoDropdown() {
-    console.log("loadMapsIntoDropdown() started");
-    try {
-      const r = await fetch(`${SCRIPT_URL}?action=getMaps`);
-      console.log("Dropdown fetch status:", r.status);
-      const data = await r.json();
-      console.log("Dropdown data received:", data);
-
-      if (data.status === "success") {
-        mapSelect.innerHTML = '<option value="">— select map —</option>';
-        if (data.maps.length === 0) {
-          mapSelect.innerHTML += '<option disabled>No maps available yet</option>';
-        } else {
-          data.maps.forEach(m => {
-            const opt = document.createElement('option');
-            opt.value = m.mapId;
-            opt.textContent = `${m.name} (${m.mapId})`;
-            mapSelect.appendChild(opt);
-          });
-        }
-      } else {
-        mapSelect.innerHTML = '<option value="">— error loading maps —</option>';
-        console.warn("Dropdown fetch failed:", data.error || "No status");
-      }
-    } catch (err) {
-      mapSelect.innerHTML = '<option value="">— error loading maps —</option>';
-      console.error("Dropdown fetch error:", err);
-    }
-  }
-
-  // ==================== SAVE HOTSPOT ====================
+  // ──────────────────────────────────────────────── SAVE HOTSPOT
   saveBtn.addEventListener('click', async () => {
-    const selectedType = typeSelect.value;
+    const selectedType = typeSelect.value.trim();
     if (!selectedType) return statusEl.textContent = "Select a type first";
 
     const mapId = mapSelect.value;
