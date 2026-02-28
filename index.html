@@ -316,10 +316,17 @@
                         <option value="talk">talk</option>
                     </select>
                 </div>
+
                 <div class="input-group">
-                    <label for="animSheet">Sprite Sheet URL</label>
-                    <input type="url" id="animSheet" placeholder="https://.../walk-8dir.png">
+                    <label for="animSheetFile">Upload Sprite Sheet (for preview)</label>
+                    <input type="file" id="animSheetFile" accept="image/png,image/gif">
                 </div>
+
+                <div class="input-group">
+                    <label for="animFilename">Filename for game (e.g. npc-walk-8dir.png)</label>
+                    <input type="text" id="animFilename" placeholder="npc-walk-8dir.png">
+                </div>
+
                 <div class="input-group">
                     <label for="frameW">Frame Width (px)</label>
                     <input type="number" id="frameW" value="48" min="1">
@@ -384,7 +391,7 @@
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz187kpP3gtvzMtVsMq4COdMp2LR87SifTT-AnMIr-KGnsjNCxnWEP1kshSWVdz7ndE/exec";
 
 // ────────────────────────────────────────────────
-// HOTSPOTS LOGIC (original)
+// HOTSPOTS LOGIC (original, unchanged)
 // ────────────────────────────────────────────────
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
@@ -542,7 +549,7 @@ async function saveToSheet() {
 }
 
 // ────────────────────────────────────────────────
-// MAPS LOGIC (original)
+// MAPS LOGIC
 // ────────────────────────────────────────────────
 async function loadMaps() {
     try {
@@ -630,7 +637,7 @@ document.querySelectorAll('.tab-button').forEach(btn => {
 });
 
 // ────────────────────────────────────────────────
-// ENTITIES LOGIC
+// ENTITIES LOGIC WITH FILE UPLOAD
 // ────────────────────────────────────────────────
 let animCollection = {};
 
@@ -650,25 +657,24 @@ function updateJsonPreview() {
 
 function loadAndAnimatePreview() {
     const stateData = animCollection[currentPreviewState];
-    if (!stateData?.sheet) {
+    if (!stateData?.previewDataUrl) {
         entCtx.fillStyle = '#1e293b';
         entCtx.fillRect(0,0,entPreviewCanvas.width, entPreviewCanvas.height);
         entCtx.fillStyle = '#94a3b8';
         entCtx.font = '16px sans-serif';
-        entCtx.fillText('No sprite defined', 30, 180);
+        entCtx.fillText('No sprite loaded', 30, 180);
         return;
     }
 
     previewImage = new Image();
-    previewImage.crossOrigin = "anonymous";
+    previewImage.src = stateData.previewDataUrl;
     previewImage.onload = () => { animate(); };
     previewImage.onerror = () => {
         entCtx.fillStyle = '#7f1d1d';
         entCtx.fillRect(0,0,entPreviewCanvas.width, entPreviewCanvas.height);
         entCtx.fillStyle = '#fff';
-        entCtx.fillText('Failed to load image', 20, 180);
+        entCtx.fillText('Failed to load preview', 20, 180);
     };
-    previewImage.src = stateData.sheet;
 }
 
 function animate(ts = 0) {
@@ -691,7 +697,7 @@ function animate(ts = 0) {
     const ox = (entPreviewCanvas.width - dw) / 2;
     const oy = (entPreviewCanvas.height - dh) / 2;
 
-    if (data.dirMode === '8rows' && previewImage.height >= data.frameHeight * 8) {
+    if (data.dirMode === '8rows') {
         const row = currentPreviewDir;
         const sx = frameIndex * data.frameWidth;
         const sy = row * data.frameHeight;
@@ -723,8 +729,16 @@ function buildDirectionButtons() {
 
 function syncFormToState() {
     const stateKey = document.getElementById('animState').value;
+    const fileInput = document.getElementById('animSheetFile');
+    const filename = document.getElementById('animFilename').value.trim();
+
+    // Keep existing preview data URL if not changing file
+    const existing = animCollection[stateKey] || {};
+    const previewDataUrl = fileInput.files[0] ? null : existing.previewDataUrl;
+
     animCollection[stateKey] = {
-        sheet: document.getElementById('animSheet').value.trim(),
+        filename: filename || (fileInput.files[0] ? fileInput.files[0].name : ''),
+        previewDataUrl: previewDataUrl,   // only used locally for preview
         frameWidth: parseInt(document.getElementById('frameW').value) || 48,
         frameHeight: parseInt(document.getElementById('frameH').value) || 64,
         framesPerDir: parseInt(document.getElementById('framesPerDir').value) || 8,
@@ -732,28 +746,44 @@ function syncFormToState() {
         loop: document.getElementById('animLoop').checked,
         dirMode: document.getElementById('dirMode').value
     };
+
     document.getElementById('previewStateName').textContent = stateKey;
     updateJsonPreview();
-    loadAndAnimatePreview();
+
+    // If new file selected → load it
+    if (fileInput.files[0]) {
+        const reader = new FileReader();
+        reader.onload = e => {
+            animCollection[stateKey].previewDataUrl = e.target.result;
+            loadAndAnimatePreview();
+        };
+        reader.readAsDataURL(fileInput.files[0]);
+    } else if (previewDataUrl) {
+        loadAndAnimatePreview();
+    }
 }
 
 document.getElementById('animState').addEventListener('change', e => {
     const state = e.target.value;
     const data = animCollection[state] || {};
-    document.getElementById('animSheet').value = data.sheet || '';
+    document.getElementById('animFilename').value = data.filename || '';
     document.getElementById('frameW').value = data.frameWidth || 48;
     document.getElementById('frameH').value = data.frameHeight || 64;
     document.getElementById('framesPerDir').value = data.framesPerDir || 8;
     document.getElementById('animFps').value = data.fps || 12;
     document.getElementById('animLoop').checked = data.loop !== false;
     document.getElementById('dirMode').value = data.dirMode || '8rows';
+    // Note: file input cannot be pre-filled for security reasons
     syncFormToState();
 });
 
-['animSheet','frameW','frameH','framesPerDir','animFps','animLoop','dirMode'].forEach(id => {
-    const el = document.getElementById(id);
-    el.addEventListener('input', syncFormToState);
-    el.addEventListener('change', syncFormToState);
+['animFilename','frameW','frameH','framesPerDir','animFps','animLoop','dirMode'].forEach(id => {
+    document.getElementById(id).addEventListener('input', syncFormToState);
+    document.getElementById(id).addEventListener('change', syncFormToState);
+});
+
+document.getElementById('animSheetFile').addEventListener('change', e => {
+    if (e.target.files[0]) syncFormToState();
 });
 
 document.getElementById('addAnimStateBtn').addEventListener('click', syncFormToState);
@@ -766,7 +796,16 @@ document.getElementById('saveEntityBtn').addEventListener('click', async () => {
         return;
     }
 
-    const jsonPayload = JSON.stringify(animCollection);
+    // Clean the collection for saving – remove previewDataUrl
+    const cleanCollection = {};
+    Object.keys(animCollection).forEach(key => {
+        const { previewDataUrl, ...rest } = animCollection[key];
+        if (rest.filename) {
+            cleanCollection[key] = rest;
+        }
+    });
+
+    const jsonPayload = JSON.stringify(cleanCollection);
 
     const formData = new FormData();
     formData.append("sheet", "Entities");
@@ -778,7 +817,7 @@ document.getElementById('saveEntityBtn').addEventListener('click', async () => {
     formData.append("InitialY", document.getElementById('entY').value || "0");
     formData.append("CollisionWidth", document.getElementById('entColW').value || "32");
     formData.append("CollisionHeight", document.getElementById('entColH').value || "48");
-    if (Object.keys(animCollection).length > 0) {
+    if (Object.keys(cleanCollection).length > 0) {
         formData.append("animationsJson", jsonPayload);
     }
 
@@ -789,6 +828,7 @@ document.getElementById('saveEntityBtn').addEventListener('click', async () => {
         statusEl.textContent = `Entity "${nameVal}" saved successfully.`;
         document.querySelectorAll('#entities input:not([type=checkbox]), #entities textarea').forEach(el => el.value = '');
         document.getElementById('entType').value = 'NPC';
+        document.getElementById('animSheetFile').value = '';
         animCollection = {};
         updateJsonPreview();
         loadAndAnimatePreview();
@@ -821,8 +861,8 @@ async function loadMapsIntoEntityDropdown() {
 // INITIALIZATION
 // ────────────────────────────────────────────────
 window.addEventListener('load', () => {
-    loadMapsIntoDropdown();           // for hotspots tab
-    loadMapsIntoEntityDropdown();     // for entities tab
+    loadMapsIntoDropdown();           // hotspots
+    loadMapsIntoEntityDropdown();     // entities
 });
 
 document.getElementById('saveMapBtn').addEventListener('click', saveMap);
