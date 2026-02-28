@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Game Content Editor</title>
     <style>
-        /* Your existing styles – kept intact */
         :root {
             --bg: #0f0f17;
             --surface: #1e293b;
@@ -51,20 +50,14 @@
             white-space: nowrap;
             transition: all 0.15s;
         }
-        .tab-button:hover {
-            color: var(--text);
-        }
+        .tab-button:hover { color: var(--text); }
         .tab-button.active {
             color: #a5b4fc;
             border-bottom: 3px solid var(--primary);
             font-weight: 600;
         }
-        .tab-content {
-            display: none;
-        }
-        .tab-content.active {
-            display: block;
-        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
         .controls {
             display: flex;
             flex-wrap: wrap;
@@ -90,10 +83,7 @@
             color: var(--text);
             font-size: 1rem;
         }
-        textarea {
-            min-height: 90px;
-            resize: vertical;
-        }
+        textarea { min-height: 90px; resize: vertical; }
         button {
             padding: 10px 20px;
             border: none;
@@ -104,31 +94,13 @@
             transition: all 0.15s;
             height: 40px;
         }
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-        }
-        .btn-primary:hover:not(:disabled) {
-            background: var(--primary-dark);
-        }
-        .btn-secondary {
-            background: #475569;
-            color: white;
-        }
-        .btn-secondary:hover:not(:disabled) {
-            background: #334155;
-        }
-        .btn-clear {
-            background: var(--danger);
-            color: white;
-        }
-        .btn-clear:hover:not(:disabled) {
-            background: #dc2626;
-        }
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover:not(:disabled) { background: var(--primary-dark); }
+        .btn-secondary { background: #475569; color: white; }
+        .btn-secondary:hover:not(:disabled) { background: #334155; }
+        .btn-clear { background: var(--danger); color: white; }
+        .btn-clear:hover:not(:disabled) { background: #dc2626; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
         #status {
             padding: 12px 16px;
             border-radius: 8px;
@@ -147,11 +119,7 @@
             max-width: 100%;
             overflow-x: auto;
         }
-        canvas {
-            display: block;
-            touch-action: none;
-            image-rendering: pixelated;
-        }
+        canvas { display: block; touch-action: none; image-rendering: pixelated; }
         .point-label {
             position: absolute;
             color: #fbbf24;
@@ -161,13 +129,13 @@
             transform: translate(-50%, -150%);
             text-shadow: 0 0 6px black, 1px 1px 3px black;
         }
-        pre#result, pre#animJsonPreview {
-            background: #111827;
-            padding: 16px;
-            border-radius: 8px;
-            border: 1px solid #334155;
-            white-space: pre-wrap;
-            font-size: 0.92rem;
+        pre { 
+            background: #111827; 
+            padding: 16px; 
+            border-radius: 8px; 
+            border: 1px solid #334155; 
+            white-space: pre-wrap; 
+            font-size: 0.92rem; 
             max-height: 220px;
             overflow: auto;
         }
@@ -181,9 +149,7 @@
             border: 1px solid #334155;
             text-align: left;
         }
-        th {
-            background: #111827;
-        }
+        th { background: #111827; }
         summary {
             cursor: pointer;
             font-size: 1.1rem;
@@ -192,9 +158,6 @@
             background: #111827;
             border-radius: 8px;
             margin-bottom: 12px;
-        }
-        details[open] summary {
-            margin-bottom: 16px;
         }
         .dir-selector {
             display: flex;
@@ -210,9 +173,7 @@
             font-size: 0.9rem;
             cursor: pointer;
         }
-        .dir-btn.active {
-            background: var(--primary);
-        }
+        .dir-btn.active { background: var(--primary); }
     </style>
 </head>
 <body>
@@ -228,14 +189,12 @@
         <button class="tab-button" data-tab="preview">Preview & Export</button>
     </div>
 
-    <!-- Hotspots Tab (unchanged) -->
+    <!-- Hotspots Tab -->
     <div id="hotspots" class="tab-content active">
         <div class="controls">
             <div class="input-group">
                 <label for="mapSelect">Map / Room</label>
-                <select id="mapSelect">
-                    <option value="">— select map —</option>
-                </select>
+                <select id="mapSelect"><option value="">— select map —</option></select>
             </div>
             <div class="input-group">
                 <label for="nameInput">Name</label>
@@ -268,13 +227,11 @@
             <button id="saveBtn" class="btn-primary" disabled>Save Hotspot</button>
         </div>
         <div id="status">Load a background image to start</div>
-        <div class="canvas-wrapper">
-            <canvas id="canvas"></canvas>
-        </div>
+        <div class="canvas-wrapper"><canvas id="canvas"></canvas></div>
         <pre id="result">Save result will appear here...</pre>
     </div>
 
-    <!-- Maps Tab (unchanged) -->
+    <!-- Maps Tab -->
     <div id="maps" class="tab-content">
         <h2>Create New Map</h2>
         <div class="controls">
@@ -294,19 +251,12 @@
         </div>
         <h3>Existing Maps</h3>
         <table id="mapsTable">
-            <thead>
-                <tr>
-                    <th>MapID</th>
-                    <th>Name</th>
-                    <th>Background</th>
-                    <th>Description</th>
-                </tr>
-            </thead>
+            <thead><tr><th>MapID</th><th>Name</th><th>Background</th><th>Description</th></tr></thead>
             <tbody></tbody>
         </table>
     </div>
 
-    <!-- Entities Tab – now implemented -->
+    <!-- Entities Tab -->
     <div id="entities" class="tab-content">
         <h2>Entities / NPCs / Objects</h2>
 
@@ -331,9 +281,7 @@
             </div>
             <div class="input-group">
                 <label for="entMap">Initial Map</label>
-                <select id="entMap">
-                    <option value="">— select map —</option>
-                </select>
+                <select id="entMap"><option value="">— select map —</option></select>
             </div>
             <div class="input-group">
                 <label for="entX">Initial X</label>
@@ -355,7 +303,6 @@
 
         <details style="margin: 24px 0;">
             <summary>Advanced Animations (multiple states + 8 directions)</summary>
-
             <div class="controls">
                 <div class="input-group">
                     <label for="animState">Animation State</label>
@@ -400,31 +347,29 @@
                     </select>
                 </div>
             </div>
-
             <button id="addAnimStateBtn" class="btn-secondary">Add / Update State</button>
-
-            <pre id="animJsonPreview" style="margin-top: 16px;">{ }</pre>
+            <pre id="animJsonPreview" style="margin-top:16px;">{ }</pre>
         </details>
 
-        <div class="canvas-wrapper" style="height: 360px; max-width: 480px; margin: 0 auto;">
+        <div class="canvas-wrapper" style="height:360px; max-width:480px; margin:0 auto;">
             <canvas id="entPreviewCanvas" width="240" height="360"></canvas>
         </div>
 
         <div class="dir-selector" id="previewDirButtons"></div>
 
-        <p style="text-align: center; margin: 12px 0;">
+        <p style="text-align:center; margin:12px 0;">
             Previewing: <strong id="previewStateName">idle</strong> • 
             Direction: <strong id="previewDirName">down</strong>
         </p>
 
         <button id="saveEntityBtn" class="btn-primary">Save Entity</button>
 
-        <div id="entityStatus" style="margin-top: 16px; padding: 12px; background: #111827; border-radius: 8px; border: 1px solid #334155;">
+        <div id="entityStatus" style="margin-top:16px; padding:12px; background:#111827; border-radius:8px; border:1px solid #334155;">
             Ready to create entity
         </div>
     </div>
 
-    <!-- Placeholder tabs (unchanged) -->
+    <!-- Transitions & Preview tabs -->
     <div id="transitions" class="tab-content">
         <h2>Transitions & Portals</h2>
         <p>Coming soon...</p>
@@ -436,13 +381,241 @@
 </div>
 
 <script>
-// ────────────────────────────────────────────────
-// Your original code (hotspots + maps) remains unchanged below
-// ────────────────────────────────────────────────
-
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz187kpP3gtvzMtVsMq4COdMp2LR87SifTT-AnMIr-KGnsjNCxnWEP1kshSWVdz7ndE/exec";
 
-// Tab switching
+// ────────────────────────────────────────────────
+// HOTSPOTS LOGIC (original)
+// ────────────────────────────────────────────────
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const imageInput = document.getElementById('imageInput');
+const typeSelect = document.getElementById('typeSelect');
+const nameInput = document.getElementById('nameInput');
+const descInput = document.getElementById('descInput');
+const clearBtn = document.getElementById('clearBtn');
+const saveBtn = document.getElementById('saveBtn');
+const statusEl = document.getElementById('status');
+const resultEl = document.getElementById('result');
+const mapSelect = document.getElementById('mapSelect');
+let img = new Image();
+let points = [];
+
+function fitCanvasToImage() {
+    if (!img.src || img.naturalWidth <= 0) return;
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    redraw();
+}
+
+function redraw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (img.src) ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    if (points.length >= 2) {
+        ctx.strokeStyle = '#22c55e';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, points[0].y);
+        for (let i = 1; i < points.length; i++) ctx.lineTo(points[i].x, points[i].y);
+        ctx.stroke();
+    }
+    document.querySelectorAll('.point-label').forEach(el => el.remove());
+    points.forEach((p, i) => {
+        ctx.fillStyle = '#22c55e';
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 6, 0, Math.PI * 2);
+        ctx.fill();
+        const label = document.createElement('div');
+        label.className = 'point-label';
+        label.textContent = (i + 1).toString();
+        label.style.left = p.x + 'px';
+        label.style.top = p.y + 'px';
+        canvas.parentElement.appendChild(label);
+    });
+}
+
+function updateUI() {
+    const hasImage = !!imageInput.files.length;
+    clearBtn.disabled = points.length === 0;
+    saveBtn.disabled = !hasImage;
+    statusEl.textContent = `Points placed: ${points.length}`;
+}
+
+imageInput.addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) { statusEl.textContent = "No file selected"; updateUI(); return; }
+    statusEl.textContent = `Reading ${file.name} ...`;
+    const reader = new FileReader();
+    reader.onload = ev => {
+        img = new Image();
+        img.src = ev.target.result;
+        img.onload = () => {
+            fitCanvasToImage();
+            points = [];
+            updateUI();
+            resultEl.textContent = '';
+            statusEl.textContent = `Image loaded (${img.naturalWidth}×${img.naturalHeight}) – click/tap to place points`;
+        };
+    };
+    reader.readAsDataURL(file);
+    updateUI();
+});
+
+canvas.addEventListener('click', e => {
+    if (!img.src || img.naturalWidth <= 0) { statusEl.textContent = "Load an image first"; return; }
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const pointX = Math.round(x);
+    const pointY = Math.round(y);
+    const clampedX = Math.max(0, Math.min(pointX, img.naturalWidth));
+    const clampedY = Math.max(0, Math.min(pointY, img.naturalHeight));
+    points.push({ x: clampedX, y: clampedY });
+    updateUI();
+    redraw();
+});
+
+clearBtn.addEventListener('click', () => {
+    points = [];
+    updateUI();
+    redraw();
+    resultEl.textContent = '';
+});
+
+typeSelect.addEventListener('change', () => {
+    const isZoom = typeSelect.value === "zoom_to";
+    document.getElementById('zoomTargetGroup').style.display = isZoom ? 'block' : 'none';
+    updateUI();
+});
+
+async function saveToSheet() {
+    const selectedType = typeSelect.value;
+    if (!selectedType) { statusEl.textContent = "Please select a Type first"; return; }
+    const mapId = mapSelect.value;
+    if (!mapId) { statusEl.textContent = "Please select a Map first"; return; }
+    const nameValue = nameInput.value.trim();
+    const description = descInput.value.trim();
+    const zoomTarget = (selectedType === "zoom_to") ? (document.getElementById('zoomTargetInput')?.value.trim() || "") : "";
+    const imageName = imageInput.files[0]?.name || `entry-${Date.now()}`;
+    const pointCount = points.length;
+    const pointsString = pointCount > 0 ? points.map(p => `${p.x};${p.y}`).join('\n') : "";
+    if (!nameValue) { statusEl.textContent = "Please enter a Name"; return; }
+
+    const formData = new FormData();
+    formData.append("sheet", "Hotspots");
+    formData.append("mapId", mapId);
+    formData.append("type", selectedType);
+    formData.append("name", nameValue);
+    formData.append("description", description);
+    formData.append("zoomTo", zoomTarget);
+    formData.append("imageName", imageName);
+    formData.append("pointCount", pointCount.toString());
+    formData.append("points", pointsString);
+    formData.append("pointsJson", JSON.stringify(points.map(p => [p.x, p.y])));
+    formData.append("hasPoints", (pointCount > 0).toString());
+
+    statusEl.textContent = `Saving hotspot on map ${mapId} ...`;
+
+    try {
+        await fetch(SCRIPT_URL, { method: 'POST', body: formData, mode: 'no-cors' });
+        const prefixMap = { "Map": "MAP-", "Marker": "MRK-", "NPC": "NPC-", "Pickup": "PCK-", "zoom_to": "ZOM-" };
+        const prefix = prefixMap[selectedType] || "UNK-";
+        const expectedId = prefix + String(pointCount + 1).padStart(3, '0');
+        statusEl.textContent = `Saved "${nameValue}" as ${selectedType} (ID ≈ ${expectedId}) on map ${mapId}`;
+        resultEl.textContent = `Saved hotspot:\nMapID: ${mapId}\nType: ${selectedType}\nName: ${nameValue}\nDescription: ${description || "(none)"}${selectedType === "zoom_to" ? `\nZoom To: ${zoomTarget || "(not specified)"}` : ""}\nImage: ${imageName}\nPoints: ${pointCount}\nExpected ID: ${expectedId}\nPoints:\n${pointsString || "(none)"}`;
+
+        nameInput.value = '';
+        descInput.value = '';
+        const zoomInput = document.getElementById('zoomTargetInput');
+        if (zoomInput) zoomInput.value = '';
+        imageInput.value = '';
+        img = new Image(); img.src = '';
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        points = [];
+        redraw();
+        resultEl.textContent = '';
+        updateUI();
+        statusEl.textContent += " — Ready for next hotspot";
+    } catch (err) {
+        console.error("Hotspot save failed:", err);
+        statusEl.textContent += " — Save failed";
+    }
+}
+
+// ────────────────────────────────────────────────
+// MAPS LOGIC (original)
+// ────────────────────────────────────────────────
+async function loadMaps() {
+    try {
+        const r = await fetch(`${SCRIPT_URL}?action=getMaps`);
+        const data = await r.json();
+        if (data.status === "success") {
+            const tbody = document.querySelector('#mapsTable tbody');
+            tbody.innerHTML = '';
+            if (data.maps.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4">No maps created yet</td></tr>';
+            } else {
+                data.maps.forEach(m => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td>${m.mapId}</td><td>${m.name}</td><td>${m.background}</td><td>${m.description || ""}</td>`;
+                    tbody.appendChild(tr);
+                });
+            }
+        }
+    } catch (err) {
+        console.error("loadMaps error:", err);
+    }
+}
+
+async function loadMapsIntoDropdown() {
+    try {
+        const r = await fetch(`${SCRIPT_URL}?action=getMaps`);
+        const data = await r.json();
+        if (data.status === "success") {
+            mapSelect.innerHTML = '<option value="">— select map —</option>';
+            if (data.maps.length === 0) {
+                mapSelect.innerHTML += '<option disabled>No maps yet</option>';
+            } else {
+                data.maps.forEach(m => {
+                    const opt = document.createElement('option');
+                    opt.value = m.mapId;
+                    opt.textContent = `${m.name} (${m.mapId})`;
+                    mapSelect.appendChild(opt);
+                });
+            }
+        }
+    } catch (err) {
+        console.error("Dropdown fetch error:", err);
+    }
+}
+
+async function saveMap() {
+    const mapName = document.getElementById('mapName').value.trim();
+    const mapDesc = document.getElementById('mapDesc').value.trim();
+    const file = document.getElementById('mapBackground').files[0];
+    if (!mapName) return alert("Enter a map name");
+
+    const formData = new FormData();
+    formData.append("sheet", "Maps");
+    formData.append("name", mapName);
+    formData.append("description", mapDesc);
+    if (file) formData.append("backgroundImage", file.name);
+
+    try {
+        await fetch(SCRIPT_URL, { method: 'POST', body: formData, mode: 'no-cors' });
+        alert("Map saved! Refreshing list...");
+        loadMaps();
+        document.getElementById('mapName').value = '';
+        document.getElementById('mapDesc').value = '';
+        document.getElementById('mapBackground').value = '';
+    } catch (err) {
+        console.error("Map save failed:", err);
+        alert("Save failed: " + err.message);
+    }
+}
+
+// ────────────────────────────────────────────────
+// TAB SWITCHING
+// ────────────────────────────────────────────────
 document.querySelectorAll('.tab-button').forEach(btn => {
     btn.addEventListener('click', () => {
         document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
@@ -456,13 +629,9 @@ document.querySelectorAll('.tab-button').forEach(btn => {
     });
 });
 
-// ... (your original hotspots canvas logic, saveToSheet, saveMap, loadMaps, loadMapsIntoDropdown functions remain here unchanged)
-// Paste your original hotspots + maps script code here ...
-
 // ────────────────────────────────────────────────
-// ENTITIES TAB IMPLEMENTATION
+// ENTITIES LOGIC
 // ────────────────────────────────────────────────
-
 let animCollection = {};
 
 const entPreviewCanvas = document.getElementById('entPreviewCanvas');
@@ -473,10 +642,7 @@ let lastFrameTs = 0;
 let currentPreviewState = 'idle';
 let currentPreviewDir = 0;
 
-const directions = [
-    'down', 'down-right', 'right', 'up-right',
-    'up', 'up-left', 'left', 'down-left'
-];
+const directions = ['down', 'down-right', 'right', 'up-right', 'up', 'up-left', 'left', 'down-left'];
 
 function updateJsonPreview() {
     document.getElementById('animJsonPreview').textContent = JSON.stringify(animCollection, null, 2);
@@ -495,9 +661,7 @@ function loadAndAnimatePreview() {
 
     previewImage = new Image();
     previewImage.crossOrigin = "anonymous";
-    previewImage.onload = () => {
-        animate();
-    };
+    previewImage.onload = () => { animate(); };
     previewImage.onerror = () => {
         entCtx.fillStyle = '#7f1d1d';
         entCtx.fillRect(0,0,entPreviewCanvas.width, entPreviewCanvas.height);
@@ -533,7 +697,6 @@ function animate(ts = 0) {
         const sy = row * data.frameHeight;
         entCtx.drawImage(previewImage, sx, sy, data.frameWidth, data.frameHeight, ox, oy, dw, dh);
     } else {
-        // fallback – single direction or legacy
         entCtx.drawImage(previewImage, 0, 0, previewImage.width, previewImage.height, ox, oy, dw*1.5, dh*1.5);
     }
 
@@ -557,10 +720,6 @@ function buildDirectionButtons() {
         container.appendChild(btn);
     });
 }
-
-// ────────────────────────────────────────────────
-// Event handlers for animation fields
-// ────────────────────────────────────────────────
 
 function syncFormToState() {
     const stateKey = document.getElementById('animState').value;
@@ -591,18 +750,13 @@ document.getElementById('animState').addEventListener('change', e => {
     syncFormToState();
 });
 
-['animSheet','frameW','frameH','framesPerDir','animFps','animLoop','dirMode']
-    .forEach(id => {
-        const el = document.getElementById(id);
-        el.addEventListener('input', syncFormToState);
-        el.addEventListener('change', syncFormToState);
-    });
+['animSheet','frameW','frameH','framesPerDir','animFps','animLoop','dirMode'].forEach(id => {
+    const el = document.getElementById(id);
+    el.addEventListener('input', syncFormToState);
+    el.addEventListener('change', syncFormToState);
+});
 
 document.getElementById('addAnimStateBtn').addEventListener('click', syncFormToState);
-
-// ────────────────────────────────────────────────
-// Save Entity
-// ────────────────────────────────────────────────
 
 document.getElementById('saveEntityBtn').addEventListener('click', async () => {
     const statusEl = document.getElementById('entityStatus');
@@ -631,13 +785,8 @@ document.getElementById('saveEntityBtn').addEventListener('click', async () => {
     statusEl.textContent = "Saving entity...";
 
     try {
-        await fetch(SCRIPT_URL, {
-            method: 'POST',
-            body: formData,
-            mode: 'no-cors'
-        });
+        await fetch(SCRIPT_URL, { method: 'POST', body: formData, mode: 'no-cors' });
         statusEl.textContent = `Entity "${nameVal}" saved successfully.`;
-        // Reset form (optional)
         document.querySelectorAll('#entities input:not([type=checkbox]), #entities textarea').forEach(el => el.value = '');
         document.getElementById('entType').value = 'NPC';
         animCollection = {};
@@ -649,27 +798,35 @@ document.getElementById('saveEntityBtn').addEventListener('click', async () => {
     }
 });
 
-// ────────────────────────────────────────────────
-// Init
-// ────────────────────────────────────────────────
-
-function loadMapsIntoEntityDropdown() {
-    fetch(`${SCRIPT_URL}?action=getMaps`)
-        .then(r => r.json())
-        .then(data => {
-            if (data.status === "success") {
-                const sel = document.getElementById('entMap');
-                sel.innerHTML = '<option value="">— select map —</option>';
-                data.maps.forEach(m => {
-                    const opt = document.createElement('option');
-                    opt.value = m.mapId;
-                    opt.textContent = `${m.name} (${m.mapId})`;
-                    sel.appendChild(opt);
-                });
-            }
-        })
-        .catch(err => console.warn("Failed to load maps for entities", err));
+async function loadMapsIntoEntityDropdown() {
+    try {
+        const r = await fetch(`${SCRIPT_URL}?action=getMaps`);
+        const data = await r.json();
+        if (data.status === "success") {
+            const sel = document.getElementById('entMap');
+            sel.innerHTML = '<option value="">— select map —</option>';
+            data.maps.forEach(m => {
+                const opt = document.createElement('option');
+                opt.value = m.mapId;
+                opt.textContent = `${m.name} (${m.mapId})`;
+                sel.appendChild(opt);
+            });
+        }
+    } catch (err) {
+        console.warn("Maps load failed for entities tab", err);
+    }
 }
+
+// ────────────────────────────────────────────────
+// INITIALIZATION
+// ────────────────────────────────────────────────
+window.addEventListener('load', () => {
+    loadMapsIntoDropdown();           // for hotspots tab
+    loadMapsIntoEntityDropdown();     // for entities tab
+});
+
+document.getElementById('saveMapBtn').addEventListener('click', saveMap);
+saveBtn.addEventListener('click', saveToSheet);
 
 buildDirectionButtons();
 requestAnimationFrame(animate);
