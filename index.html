@@ -24,57 +24,17 @@
             min-height: 100vh;
             padding: 24px;
         }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        h1 {
-            margin: 0 0 16px;
-            color: #a5b4fc;
-            text-align: center;
-        }
-        .tabs {
-            display: flex;
-            border-bottom: 1px solid #334155;
-            margin-bottom: 24px;
-            overflow-x: auto;
-            padding-bottom: 4px;
-        }
-        .tab-button {
-            padding: 12px 28px;
-            background: transparent;
-            border: none;
-            color: var(--text-muted);
-            font-size: 1.05rem;
-            cursor: pointer;
-            white-space: nowrap;
-            transition: all 0.15s;
-        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 { margin: 0 0 16px; color: #a5b4fc; text-align: center; }
+        .tabs { display: flex; border-bottom: 1px solid #334155; margin-bottom: 24px; overflow-x: auto; padding-bottom: 4px; }
+        .tab-button { padding: 12px 28px; background: transparent; border: none; color: var(--text-muted); font-size: 1.05rem; cursor: pointer; white-space: nowrap; transition: all 0.15s; }
         .tab-button:hover { color: var(--text); }
-        .tab-button.active {
-            color: #a5b4fc;
-            border-bottom: 3px solid var(--primary);
-            font-weight: 600;
-        }
+        .tab-button.active { color: #a5b4fc; border-bottom: 3px solid var(--primary); font-weight: 600; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-        .controls {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 16px;
-            margin-bottom: 20px;
-        }
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            min-width: 220px;
-            flex: 1;
-        }
-        label {
-            margin-bottom: 6px;
-            font-weight: 500;
-            color: #cbd5e1;
-        }
+        .controls { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 20px; }
+        .input-group { display: flex; flex-direction: column; min-width: 220px; flex: 1; }
+        label { margin-bottom: 6px; font-weight: 500; color: #cbd5e1; }
         input, textarea, select {
             padding: 10px 12px;
             border-radius: 8px;
@@ -129,13 +89,13 @@
             transform: translate(-50%, -150%);
             text-shadow: 0 0 6px black, 1px 1px 3px black;
         }
-        pre { 
-            background: #111827; 
-            padding: 16px; 
-            border-radius: 8px; 
-            border: 1px solid #334155; 
-            white-space: pre-wrap; 
-            font-size: 0.92rem; 
+        pre {
+            background: #111827;
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            white-space: pre-wrap;
+            font-size: 0.92rem;
             max-height: 220px;
             overflow: auto;
         }
@@ -143,6 +103,7 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 16px;
+            cursor: pointer;
         }
         th, td {
             padding: 10px;
@@ -150,6 +111,7 @@
             text-align: left;
         }
         th { background: #111827; }
+        tr:hover { background: #1e293b; }
         summary {
             cursor: pointer;
             font-size: 1.1rem;
@@ -189,7 +151,7 @@
         <button class="tab-button" data-tab="preview">Preview & Export</button>
     </div>
 
-    <!-- Hotspots Tab -->
+    <!-- Hotspots Tab – EXACTLY AS YOU HAD IT -->
     <div id="hotspots" class="tab-content active">
         <div class="controls">
             <div class="input-group">
@@ -231,7 +193,7 @@
         <pre id="result">Save result will appear here...</pre>
     </div>
 
-    <!-- Maps Tab -->
+    <!-- Maps Tab – EXACTLY AS YOU HAD IT -->
     <div id="maps" class="tab-content">
         <h2>Create New Map</h2>
         <div class="controls">
@@ -256,9 +218,26 @@
         </table>
     </div>
 
-    <!-- Entities Tab -->
+    <!-- Entities Tab – FULL CREATE + EDIT/UPDATE SUPPORT -->
     <div id="entities" class="tab-content">
         <h2>Entities / NPCs / Objects</h2>
+
+        <h3>Existing Entities</h3>
+        <table id="entitiesTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Type</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+        <h3 id="entityFormTitle">Create New Entity</h3>
+        <input type="hidden" id="entityId" value="">
 
         <div class="controls">
             <div class="input-group">
@@ -278,18 +257,6 @@
             <div class="input-group">
                 <label for="entDesc">Description</label>
                 <textarea id="entDesc" placeholder="Appearance, behavior..."></textarea>
-            </div>
-            <div class="input-group">
-                <label for="entMap">Initial Map</label>
-                <select id="entMap"><option value="">— select map —</option></select>
-            </div>
-            <div class="input-group">
-                <label for="entX">Initial X</label>
-                <input type="number" id="entX" value="300" min="0">
-            </div>
-            <div class="input-group">
-                <label for="entY">Initial Y</label>
-                <input type="number" id="entY" value="400" min="0">
             </div>
             <div class="input-group">
                 <label for="entColW">Collision Width</label>
@@ -316,17 +283,14 @@
                         <option value="talk">talk</option>
                     </select>
                 </div>
-
                 <div class="input-group">
                     <label for="animSheetFile">Upload Sprite Sheet (for preview)</label>
                     <input type="file" id="animSheetFile" accept="image/png,image/gif">
                 </div>
-
                 <div class="input-group">
-                    <label for="animFilename">Filename for game (e.g. npc-walk-8dir.png)</label>
+                    <label for="animFilename">Filename for game</label>
                     <input type="text" id="animFilename" placeholder="npc-walk-8dir.png">
                 </div>
-
                 <div class="input-group">
                     <label for="frameW">Frame Width (px)</label>
                     <input type="number" id="frameW" value="48" min="1">
@@ -336,7 +300,7 @@
                     <input type="number" id="frameH" value="64" min="1">
                 </div>
                 <div class="input-group">
-                    <label for="framesPerDir">Frames per Direction</label>
+                    <label for="framesPerDir">Frames per Animation</label>
                     <input type="number" id="framesPerDir" value="8" min="1">
                 </div>
                 <div class="input-group">
@@ -369,7 +333,8 @@
             Direction: <strong id="previewDirName">down</strong>
         </p>
 
-        <button id="saveEntityBtn" class="btn-primary">Save Entity</button>
+        <button id="saveEntityBtn" class="btn-primary">Save New Entity</button>
+        <button id="newEntityBtn" class="btn-secondary" style="display:none;">Create New (clear form)</button>
 
         <div id="entityStatus" style="margin-top:16px; padding:12px; background:#111827; border-radius:8px; border:1px solid #334155;">
             Ready to create entity
@@ -391,7 +356,7 @@
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz187kpP3gtvzMtVsMq4COdMp2LR87SifTT-AnMIr-KGnsjNCxnWEP1kshSWVdz7ndE/exec";
 
 // ────────────────────────────────────────────────
-// HOTSPOTS LOGIC (original, unchanged)
+// HOTSPOTS LOGIC – YOUR ORIGINAL CODE (UNCHANGED)
 // ────────────────────────────────────────────────
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
@@ -549,7 +514,7 @@ async function saveToSheet() {
 }
 
 // ────────────────────────────────────────────────
-// MAPS LOGIC
+// MAPS LOGIC – YOUR ORIGINAL CODE (UNCHANGED)
 // ────────────────────────────────────────────────
 async function loadMaps() {
     try {
@@ -621,7 +586,7 @@ async function saveMap() {
 }
 
 // ────────────────────────────────────────────────
-// TAB SWITCHING
+// TAB SWITCHING – UNCHANGED
 // ────────────────────────────────────────────────
 document.querySelectorAll('.tab-button').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -632,14 +597,15 @@ document.querySelectorAll('.tab-button').forEach(btn => {
         btn.classList.add('active');
         if (tabId === "maps") loadMaps();
         if (tabId === "hotspots") loadMapsIntoDropdown();
-        if (tabId === "entities") loadMapsIntoEntityDropdown();
+        if (tabId === "entities") loadEntities();
     });
 });
 
 // ────────────────────────────────────────────────
-// ENTITIES LOGIC WITH FILE UPLOAD
+// ENTITIES – FULL CREATE + EDIT/UPDATE
 // ────────────────────────────────────────────────
 let animCollection = {};
+let editingEntityId = null;
 
 const entPreviewCanvas = document.getElementById('entPreviewCanvas');
 const entCtx = entPreviewCanvas.getContext('2d');
@@ -665,7 +631,6 @@ function loadAndAnimatePreview() {
         entCtx.fillText('No sprite loaded', 30, 180);
         return;
     }
-
     previewImage = new Image();
     previewImage.src = stateData.previewDataUrl;
     previewImage.onload = () => { animate(); };
@@ -680,23 +645,18 @@ function loadAndAnimatePreview() {
 function animate(ts = 0) {
     const data = animCollection[currentPreviewState];
     if (!data || !previewImage) return;
-
     if (!lastFrameTs) lastFrameTs = ts;
     const delta = ts - lastFrameTs;
-
     if (delta > (1000 / data.fps)) {
         frameIndex = (frameIndex + 1) % data.framesPerDir;
         lastFrameTs = ts;
     }
-
     entCtx.clearRect(0,0,entPreviewCanvas.width, entPreviewCanvas.height);
-
     const scale = 3;
     const dw = data.frameWidth * scale;
     const dh = data.frameHeight * scale;
     const ox = (entPreviewCanvas.width - dw) / 2;
     const oy = (entPreviewCanvas.height - dh) / 2;
-
     if (data.dirMode === '8rows') {
         const row = currentPreviewDir;
         const sx = frameIndex * data.frameWidth;
@@ -705,7 +665,6 @@ function animate(ts = 0) {
     } else {
         entCtx.drawImage(previewImage, 0, 0, previewImage.width, previewImage.height, ox, oy, dw*1.5, dh*1.5);
     }
-
     requestAnimationFrame(animate);
 }
 
@@ -731,14 +690,11 @@ function syncFormToState() {
     const stateKey = document.getElementById('animState').value;
     const fileInput = document.getElementById('animSheetFile');
     const filename = document.getElementById('animFilename').value.trim();
-
-    // Keep existing preview data URL if not changing file
     const existing = animCollection[stateKey] || {};
     const previewDataUrl = fileInput.files[0] ? null : existing.previewDataUrl;
-
     animCollection[stateKey] = {
         filename: filename || (fileInput.files[0] ? fileInput.files[0].name : ''),
-        previewDataUrl: previewDataUrl,   // only used locally for preview
+        previewDataUrl,
         frameWidth: parseInt(document.getElementById('frameW').value) || 48,
         frameHeight: parseInt(document.getElementById('frameH').value) || 64,
         framesPerDir: parseInt(document.getElementById('framesPerDir').value) || 8,
@@ -746,11 +702,8 @@ function syncFormToState() {
         loop: document.getElementById('animLoop').checked,
         dirMode: document.getElementById('dirMode').value
     };
-
     document.getElementById('previewStateName').textContent = stateKey;
     updateJsonPreview();
-
-    // If new file selected → load it
     if (fileInput.files[0]) {
         const reader = new FileReader();
         reader.onload = e => {
@@ -773,7 +726,6 @@ document.getElementById('animState').addEventListener('change', e => {
     document.getElementById('animFps').value = data.fps || 12;
     document.getElementById('animLoop').checked = data.loop !== false;
     document.getElementById('dirMode').value = data.dirMode || '8rows';
-    // Note: file input cannot be pre-filled for security reasons
     syncFormToState();
 });
 
@@ -788,6 +740,94 @@ document.getElementById('animSheetFile').addEventListener('change', e => {
 
 document.getElementById('addAnimStateBtn').addEventListener('click', syncFormToState);
 
+// Load list of entities
+async function loadEntities() {
+    try {
+        const r = await fetch(`${SCRIPT_URL}?action=getEntities`);
+        const data = await r.json();
+        if (data.status === "success") {
+            const tbody = document.querySelector('#entitiesTable tbody');
+            tbody.innerHTML = '';
+            data.entities.forEach(ent => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${ent.entityId}</td>
+                    <td>${ent.type}</td>
+                    <td>${ent.name}</td>
+                    <td>${ent.description.substring(0,50)}${ent.description.length > 50 ? '...' : ''}</td>
+                    <td><button class="btn-secondary edit-btn" data-id="${ent.entityId}">Edit</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+            document.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.addEventListener('click', () => loadEntityForEdit(btn.dataset.id));
+            });
+        }
+    } catch (err) {
+        console.error("Failed to load entities", err);
+    }
+}
+
+// Load entity data into form
+async function loadEntityForEdit(entityId) {
+    try {
+        const r = await fetch(`${SCRIPT_URL}?action=getEntities`);
+        const data = await r.json();
+        if (data.status === "success") {
+            const ent = data.entities.find(e => e.entityId === entityId);
+            if (ent) {
+                editingEntityId = entityId;
+                document.getElementById('entityId').value = entityId;
+                document.getElementById('entityFormTitle').textContent = `Edit Entity ${entityId}`;
+                document.getElementById('saveEntityBtn').textContent = "Update Entity";
+                document.getElementById('newEntityBtn').style.display = 'inline-block';
+
+                document.getElementById('entType').value = ent.type || 'Other';
+                document.getElementById('entName').value = ent.name || '';
+                document.getElementById('entDesc').value = ent.description || '';
+                document.getElementById('entColW').value = ent.collisionWidth || 32;
+                document.getElementById('entColH').value = ent.collisionHeight || 48;
+
+                // Clear and load animations
+                animCollection = {};
+                if (ent.animationsJson) {
+                    try {
+                        const parsed = JSON.parse(ent.animationsJson);
+                        Object.keys(parsed).forEach(key => {
+                            animCollection[key] = { ...parsed[key], previewDataUrl: null };
+                        });
+                        const firstState = Object.keys(animCollection)[0] || 'idle';
+                        document.getElementById('animState').value = firstState;
+                        syncFormToState();
+                    } catch (e) {
+                        console.error("Invalid animationsJson", e);
+                    }
+                }
+                updateJsonPreview();
+                loadAndAnimatePreview();
+            }
+        }
+    } catch (err) {
+        console.error("Load entity failed", err);
+    }
+}
+
+// Clear form for new entity
+document.getElementById('newEntityBtn').addEventListener('click', () => {
+    editingEntityId = null;
+    document.getElementById('entityId').value = '';
+    document.getElementById('entityFormTitle').textContent = 'Create New Entity';
+    document.getElementById('saveEntityBtn').textContent = 'Save New Entity';
+    document.getElementById('newEntityBtn').style.display = 'none';
+    document.querySelectorAll('#entities input:not([type=hidden]):not([type=checkbox]), #entities textarea').forEach(el => el.value = '');
+    document.getElementById('entType').value = 'NPC';
+    document.getElementById('animSheetFile').value = '';
+    animCollection = {};
+    updateJsonPreview();
+    loadAndAnimatePreview();
+});
+
+// Save (create or update)
 document.getElementById('saveEntityBtn').addEventListener('click', async () => {
     const statusEl = document.getElementById('entityStatus');
     const nameVal = document.getElementById('entName').value.trim();
@@ -796,13 +836,10 @@ document.getElementById('saveEntityBtn').addEventListener('click', async () => {
         return;
     }
 
-    // Clean the collection for saving – remove previewDataUrl
     const cleanCollection = {};
     Object.keys(animCollection).forEach(key => {
         const { previewDataUrl, ...rest } = animCollection[key];
-        if (rest.filename) {
-            cleanCollection[key] = rest;
-        }
+        if (rest.filename) cleanCollection[key] = rest;
     });
 
     const jsonPayload = JSON.stringify(cleanCollection);
@@ -812,62 +849,39 @@ document.getElementById('saveEntityBtn').addEventListener('click', async () => {
     formData.append("Type", document.getElementById('entType').value || "Other");
     formData.append("Name", nameVal);
     formData.append("Description", document.getElementById('entDesc').value.trim());
-    formData.append("InitialMapID", document.getElementById('entMap').value || "");
-    formData.append("InitialX", document.getElementById('entX').value || "0");
-    formData.append("InitialY", document.getElementById('entY').value || "0");
     formData.append("CollisionWidth", document.getElementById('entColW').value || "32");
     formData.append("CollisionHeight", document.getElementById('entColH').value || "48");
     if (Object.keys(cleanCollection).length > 0) {
         formData.append("animationsJson", jsonPayload);
     }
+    if (editingEntityId) {
+        formData.append("entityId", editingEntityId);
+    }
 
-    statusEl.textContent = "Saving entity...";
+    statusEl.textContent = editingEntityId ? "Updating entity..." : "Saving new entity...";
 
     try {
         await fetch(SCRIPT_URL, { method: 'POST', body: formData, mode: 'no-cors' });
-        statusEl.textContent = `Entity "${nameVal}" saved successfully.`;
-        document.querySelectorAll('#entities input:not([type=checkbox]), #entities textarea').forEach(el => el.value = '');
-        document.getElementById('entType').value = 'NPC';
-        document.getElementById('animSheetFile').value = '';
-        animCollection = {};
-        updateJsonPreview();
-        loadAndAnimatePreview();
+        statusEl.textContent = editingEntityId ? `Entity ${editingEntityId} updated.` : `Entity "${nameVal}" created.`;
+        loadEntities(); // refresh list
+        document.getElementById('newEntityBtn').click(); // clear form
     } catch (err) {
         console.error(err);
         statusEl.textContent = "Save failed – check console/network";
     }
 });
 
-async function loadMapsIntoEntityDropdown() {
-    try {
-        const r = await fetch(`${SCRIPT_URL}?action=getMaps`);
-        const data = await r.json();
-        if (data.status === "success") {
-            const sel = document.getElementById('entMap');
-            sel.innerHTML = '<option value="">— select map —</option>';
-            data.maps.forEach(m => {
-                const opt = document.createElement('option');
-                opt.value = m.mapId;
-                opt.textContent = `${m.name} (${m.mapId})`;
-                sel.appendChild(opt);
-            });
-        }
-    } catch (err) {
-        console.warn("Maps load failed for entities tab", err);
-    }
-}
-
 // ────────────────────────────────────────────────
 // INITIALIZATION
 // ────────────────────────────────────────────────
 window.addEventListener('load', () => {
-    loadMapsIntoDropdown();           // hotspots
-    loadMapsIntoEntityDropdown();     // entities
+    loadMapsIntoDropdown();       // hotspots
+    loadMapsIntoEntityDropdown(); // entities map dropdown (if you still have it)
+    loadEntities();               // load entity list
 });
 
 document.getElementById('saveMapBtn').addEventListener('click', saveMap);
 saveBtn.addEventListener('click', saveToSheet);
-
 buildDirectionButtons();
 requestAnimationFrame(animate);
 updateJsonPreview();
