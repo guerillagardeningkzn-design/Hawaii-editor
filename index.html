@@ -560,28 +560,7 @@ async function loadMapsIntoDropdown() {
     }
 }
 
- async function loadMapsIntoEntityDropdown() {
-    try {
-        const r = await fetch(`${SCRIPT_URL}?action=getMaps`);
-        const data = await r.json();
-        if (data.status === "success") {
-            const sel = document.getElementById('entMap');
-            sel.innerHTML = '<option value="">— select map —</option>';
-            if (data.maps.length === 0) {
-                sel.innerHTML += '<option disabled>No maps yet</option>';
-            } else {
-                data.maps.forEach(m => {
-                    const opt = document.createElement('option');
-                    opt.value = m.mapId;
-                    opt.textContent = `${m.name} (${m.mapId})`;
-                    sel.appendChild(opt);
-                });
-            }
-        }
-    } catch (err) {
-        console.error("Entity map dropdown fetch error:", err);
-    }
-}           
+   
 
 async function saveMap() {
     const mapName = document.getElementById('mapName').value.trim();
