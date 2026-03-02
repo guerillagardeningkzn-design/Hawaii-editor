@@ -43,7 +43,16 @@
         .btn-clear:hover:not(:disabled) { background:#dc2626; }
         button:disabled { opacity:0.5; cursor:not-allowed; }
         #status, #entityStatus { padding:12px 16px; border-radius:8px; background:#111827; border:1px solid #334155; font-family:monospace; min-height:1.4em; }
-        .canvas-wrapper { position:relative; background:#0f172a; border-radius:12px; overflow:hidden; border:1px solid #334155; margin:16px 0; max-width:100%; overflow-x:auto; height:500px; }
+       .canvas-wrapper {
+    position: relative;
+    background: #0f172a;
+    border-radius: 12px;
+    overflow: auto;          /* changed from hidden → auto */
+    border: 1px solid #334155;
+    margin: 16px 0;
+    max-width: 100%;
+    max-height: 70vh;        /* prevents it from taking over the whole screen */
+}
         canvas { display:block; touch-action:none; image-rendering:pixelated; width:100%; height:100%; }
         .point-label { position:absolute; color:#fbbf24; font-size:11px; font-weight:bold; pointer-events:none; transform:translate(-50%,-150%); text-shadow:0 0 6px black, 1px 1px 3px black; }
         small.note { color:#94a3b8; font-size:0.85rem; display:block; margin-top:4px; }
@@ -224,11 +233,12 @@ const ctx = canvas.getContext('2d');
 let bgImg = new Image();
 let currentPoint = null;
 
-function resizeCanvas() {
-    if (bgImg.naturalWidth > 0) {
-        const maxW = window.innerWidth - 80;
-        canvas.width = Math.min(bgImg.naturalWidth, maxW);
-        canvas.height = bgImg.naturalHeight * (canvas.width / bgImg.naturalWidth);
+// No forced resize anymore — use original size
+function updateCanvasSize() {
+    if (bgImg.naturalWidth > 0 && bgImg.naturalHeight > 0) {
+        canvas.width = bgImg.naturalWidth;
+        canvas.height = bgImg.naturalHeight;
+        draw();
     }
 }
 
@@ -248,38 +258,33 @@ function draw() {
     }
 }
 
+// Click handler – uses original coordinates directly
 canvas.addEventListener('click', e => {
     if (!bgImg.src || !bgImg.complete) return;
+    
     const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / bgImg.naturalWidth;
-    const scaleY = canvas.height / bgImg.naturalHeight;
-    const x = Math.round((e.clientX - rect.left) / scaleX);
-    const y = Math.round((e.clientY - rect.top) / scaleY);
-    currentPoint = { x: Math.max(0, Math.min(x, bgImg.naturalWidth)), y: Math.max(0, Math.min(y, bgImg.naturalHeight)) };
+    const x = Math.round(e.clientX - rect.left);
+    const y = Math.round(e.clientY - rect.top);
+    
+    // Clamp to image bounds (in case of scroll + zoom browser behavior)
+    currentPoint = {
+        x: Math.max(0, Math.min(x, bgImg.naturalWidth)),
+        y: Math.max(0, Math.min(y, bgImg.naturalHeight))
+    };
+    
     draw();
     updateSaveButton();
 });
 
-document.getElementById('imageInput').addEventListener('change', e => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = ev => {
-        bgImg.onload = () => {
-            resizeCanvas();
-            draw();
-            // suggest filename based on type
-            const typ = document.getElementById('typeSelect').value;
-            const folder = typ && typeToFolder[typ] ? typeToFolder[typ] + '/' : '';
-            document.getElementById('filenameInput').value = folder + file.name;
-            updateSaveButton();
-        };
-        bgImg.src = ev.target.result;
-    };
-    reader.readAsDataURL(file);
-});
+// When background loads (from map selection or upload)
+bgImg.onload = () => {
+    updateCanvasSize();
+    draw();
+    // Optional: scroll to top-left if very large
+    document.querySelector('.canvas-wrapper').scrollTo(0, 0);
+};
 
-// Auto-load background from GitHub when map is selected
+// Update when map is selected (remove any scaling logic)
 document.getElementById('mapSelect').addEventListener('change', async function() {
     const mapId = this.value;
     const status = document.getElementById('status');
@@ -300,42 +305,34 @@ document.getElementById('mapSelect').addEventListener('change', async function()
         if (data.status !== 'success') throw new Error('Maps fetch failed');
 
         const selectedMap = data.maps.find(m => m.mapId === mapId);
-        if (!selectedMap) {
-            status.textContent = 'Selected map not found';
+        if (!selectedMap?.background) {
+            status.textContent = 'No background set for this map';
             bgImg.src = '';
             draw();
             return;
         }
 
-        const bgFilename = selectedMap.background?.trim();
-        if (!bgFilename) {
-            status.textContent = 'No background filename set for this map';
-            bgImg.src = '';
-            draw();
-            return;
-        }
-
-        // Build full path using prefix
+        const bgFilename = selectedMap.background.trim();
         const fullPath = MAP_BACKGROUND_PREFIX + bgFilename;
         bgImg.src = ASSET_BASE + fullPath;
 
         bgImg.onload = () => {
-            resizeCanvas();
+            updateCanvasSize();
             draw();
-            status.textContent = `Background loaded: ${fullPath}`;
+            status.textContent = `Background loaded (original size: ${bgImg.naturalWidth}×${bgImg.naturalHeight})`;
             currentPoint = null;
             updateSaveButton();
         };
 
         bgImg.onerror = () => {
-            status.textContent = `Failed to load background: ${fullPath} – check file in repo`;
+            status.textContent = `Failed to load ${fullPath} – check repo path/file`;
             bgImg.src = '';
             draw();
         };
 
     } catch (err) {
         console.error('Background load error:', err);
-        status.textContent = 'Error loading map background';
+        status.textContent = 'Error loading background';
     }
 });
 
