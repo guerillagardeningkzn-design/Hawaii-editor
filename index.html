@@ -218,128 +218,83 @@
         </table>
     </div>
 
-    <!-- Entities Tab – FULL CREATE + EDIT/UPDATE SUPPORT -->
-    <div id="entities" class="tab-content">
-        <h2>Entities / NPCs / Objects</h2>
+    <!-- Entities Tab – Simplified for static objects with single animation -->
+<div id="entities" class="tab-content">
+    <h2>Entities / Static Objects</h2>
 
-        <h3>Existing Entities</h3>
-        <table id="entitiesTable">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Type</th>
-                    <th>Name</th>
-                    <th>Description</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-
-        <h3 id="entityFormTitle">Create New Entity</h3>
-        <input type="hidden" id="entityId" value="">
-
-        <div class="controls">
-            <div class="input-group">
-                <label for="entType">Type</label>
-                <select id="entType">
-                    <option value="NPC">NPC</option>
-                    <option value="Object">Static Object</option>
-                    <option value="Enemy">Enemy</option>
-                    <option value="Animal">Animal / Critter</option>
-                    <option value="Other">Other</option>
-                </select>
-            </div>
-            <div class="input-group">
-                <label for="entName">Name</label>
-                <input type="text" id="entName" placeholder="e.g. Old Fisherman, Torch">
-            </div>
-            <div class="input-group">
-                <label for="entDesc">Description</label>
-                <textarea id="entDesc" placeholder="Appearance, behavior..."></textarea>
-            </div>
-            <div class="input-group">
-                <label for="entColW">Collision Width</label>
-                <input type="number" id="entColW" value="32" min="1">
-            </div>
-            <div class="input-group">
-                <label for="entColH">Collision Height</label>
-                <input type="number" id="entColH" value="48" min="1">
-            </div>
+    <div class="controls">
+        <div class="input-group">
+            <label for="entType">Type</label>
+            <select id="entType">
+                <option value="Object">Static Object</option>
+                <option value="NPC">NPC (non-moving)</option>
+                <option value="Pickup">Pickup Item</option>
+                <option value="Marker">Marker / Sign</option>
+                <option value="Other">Other</option>
+            </select>
         </div>
-
-        <details style="margin: 24px 0;">
-            <summary>Advanced Animations (multiple states + 8 directions)</summary>
-            <div class="controls">
-                <div class="input-group">
-                    <label for="animState">Animation State</label>
-                    <select id="animState">
-                        <option value="idle">idle</option>
-                        <option value="walk">walk</option>
-                        <option value="run">run</option>
-                        <option value="attack">attack</option>
-                        <option value="hurt">hurt</option>
-                        <option value="death">death</option>
-                        <option value="talk">talk</option>
-                    </select>
-                </div>
-                <div class="input-group">
-                    <label for="animSheetFile">Upload Sprite Sheet (for preview)</label>
-                    <input type="file" id="animSheetFile" accept="image/png,image/gif">
-                </div>
-                <div class="input-group">
-                    <label for="animFilename">Filename for game</label>
-                    <input type="text" id="animFilename" placeholder="npc-walk-8dir.png">
-                </div>
-                <div class="input-group">
-                    <label for="frameW">Frame Width (px)</label>
-                    <input type="number" id="frameW" value="48" min="1">
-                </div>
-                <div class="input-group">
-                    <label for="frameH">Frame Height (px)</label>
-                    <input type="number" id="frameH" value="64" min="1">
-                </div>
-                <div class="input-group">
-                    <label for="framesPerDir">Frames per Animation</label>
-                    <input type="number" id="framesPerDir" value="8" min="1">
-                </div>
-                <div class="input-group">
-                    <label for="animFps">FPS</label>
-                    <input type="number" id="animFps" value="12" min="1">
-                </div>
-                <div class="input-group">
-                    <label><input type="checkbox" id="animLoop" checked> Loop</label>
-                </div>
-                <div class="input-group">
-                    <label for="dirMode">Direction Mode</label>
-                    <select id="dirMode">
-                        <option value="1">1 direction (no facing)</option>
-                        <option value="8rows" selected>8 directions (rows in sheet)</option>
-                    </select>
-                </div>
-            </div>
-            <button id="addAnimStateBtn" class="btn-secondary">Add / Update State</button>
-            <pre id="animJsonPreview" style="margin-top:16px;">{ }</pre>
-        </details>
-
-        <div class="canvas-wrapper" style="height:360px; max-width:480px; margin:0 auto;">
-            <canvas id="entPreviewCanvas" width="240" height="360"></canvas>
+        <div class="input-group">
+            <label for="entName">Name</label>
+            <input type="text" id="entName" placeholder="e.g. Twinkling Gem, Torch">
         </div>
-
-        <div class="dir-selector" id="previewDirButtons"></div>
-
-        <p style="text-align:center; margin:12px 0;">
-            Previewing: <strong id="previewStateName">idle</strong> • 
-            Direction: <strong id="previewDirName">down</strong>
-        </p>
-
-        <button id="saveEntityBtn" class="btn-primary">Save New Entity</button>
-        <button id="newEntityBtn" class="btn-secondary" style="display:none;">Create New (clear form)</button>
-
-        <div id="entityStatus" style="margin-top:16px; padding:12px; background:#111827; border-radius:8px; border:1px solid #334155;">
-            Ready to create entity
+        <div class="input-group">
+            <label for="entDesc">Description</label>
+            <textarea id="entDesc" placeholder="What happens when tapped..."></textarea>
+        </div>
+        <div class="input-group">
+            <label for="entColW">Collision Width (tap area)</label>
+            <input type="number" id="entColW" value="64" min="1">
+        </div>
+        <div class="input-group">
+            <label for="entColH">Collision Height (tap area)</label>
+            <input type="number" id="entColH" value="64" min="1">
         </div>
     </div>
+
+    <details style="margin: 24px 0;">
+        <summary>Animation (single looping effect – flicker, twinkle, glow...)</summary>
+        <div class="controls">
+            <div class="input-group">
+                <label for="animSheetFile">Upload Sprite Sheet (for preview)</label>
+                <input type="file" id="animSheetFile" accept="image/png,image/gif">
+            </div>
+            <div class="input-group">
+                <label for="animFilename">Filename (auto-filled from upload)</label>
+                <input type="text" id="animFilename" placeholder="gem-twinkle.png" readonly>
+            </div>
+            <div class="input-group">
+                <label for="frameW">Frame Width (px)</label>
+                <input type="number" id="frameW" value="64" min="1">
+            </div>
+            <div class="input-group">
+                <label for="frameH">Frame Height (px)</label>
+                <input type="number" id="frameH" value="64" min="1">
+            </div>
+            <div class="input-group">
+                <label for="framesPerAnim">Number of Frames</label>
+                <input type="number" id="framesPerAnim" value="4" min="1">
+            </div>
+            <div class="input-group">
+                <label for="animFps">FPS</label>
+                <input type="number" id="animFps" value="10" min="1">
+            </div>
+            <div class="input-group">
+                <label><input type="checkbox" id="animLoop" checked disabled> Loop (always on for static effects)</label>
+            </div>
+        </div>
+        <pre id="animJsonPreview" style="margin-top:16px;">{ }</pre>
+    </details>
+
+    <div class="canvas-wrapper" style="height:360px; max-width:480px; margin:0 auto;">
+        <canvas id="entPreviewCanvas" width="240" height="360"></canvas>
+    </div>
+
+    <button id="saveEntityBtn" class="btn-primary">Save Entity</button>
+
+    <div id="entityStatus" style="margin-top:16px; padding:12px; background:#111827; border-radius:8px; border:1px solid #334155;">
+        Ready to create entity
+    </div>
+</div>
 
     <!-- Transitions & Preview tabs -->
     <div id="transitions" class="tab-content">
