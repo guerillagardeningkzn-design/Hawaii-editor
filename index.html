@@ -566,10 +566,9 @@ async function saveMap() {
                     tbody.appendChild(tr);
                 });
                 // Add edit click handlers (basic version – logs ID)
-                document.querySelectorAll('.edit-btn').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        console.log("Edit clicked for:", btn.dataset.id);
-                        // Later: add load into form here
+                    document.querySelectorAll('.edit-btn').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            loadEntityForEdit(btn.dataset.id);
                     });
                 });
             } else {
@@ -580,6 +579,60 @@ async function saveMap() {
         }
     } catch (err) {
         console.error("Failed to load entities:", err);
+    }
+}
+
+// Load entity data into form for editing
+async function loadEntityForEdit(entityId) {
+    try {
+        const r = await fetch(`${SCRIPT_URL}?action=getEntities`);
+        const data = await r.json();
+        if (data.status === "success") {
+            const ent = data.entities.find(e => e.entityId === entityId);
+            if (ent) {
+                editingEntityId = entityId;
+                document.getElementById('entityId').value = entityId;
+                document.getElementById('entityFormTitle').textContent = `Edit Entity ${entityId}`;
+                document.getElementById('saveEntityBtn').textContent = "Update Entity";
+                document.getElementById('newEntityBtn').style.display = 'inline-block';
+
+                // Populate basic fields
+                document.getElementById('entType').value = ent.type || 'Object';
+                document.getElementById('entName').value = ent.name || '';
+                document.getElementById('entDesc').value = ent.description || '';
+                document.getElementById('entColW').value = ent.collisionWidth || '64';
+                document.getElementById('entColH').value = ent.collisionHeight || '64';
+
+                // Load animation (single idle state)
+                animData = {};
+                if (ent.animationsJson) {
+                    try {
+                        const parsed = JSON.parse(ent.animationsJson);
+                        if (parsed.idle) {
+                            animData = {
+                                filename: parsed.idle.filename || '',
+                                previewDataUrl: null, // no local file on load
+                                frameWidth: parsed.idle.frameWidth || 64,
+                                frameHeight: parsed.idle.frameHeight || 64,
+                                framesPerAnim: parsed.idle.frames || 4,
+                                fps: parsed.idle.fps || 10,
+                                loop: true
+                            };
+                            document.getElementById('animFilename').value = animData.filename;
+                            document.getElementById('frameW').value = animData.frameWidth;
+                            document.getElementById('frameH').value = animData.frameHeight;
+                            document.getElementById('framesPerAnim').value = animData.framesPerAnim;
+                            document.getElementById('animFps').value = animData.fps;
+                            loadAndAnimatePreview(); // show existing animation (if filename hosted)
+                        }
+                    } catch (e) {
+                        console.error("Invalid animationsJson:", e);
+                    }
+                }
+            }
+        }
+    } catch (err) {
+        console.error("Load entity failed:", err);
     }
 }
 
@@ -699,7 +752,7 @@ document.getElementById('animSheetFile').addEventListener('change', e => {
     });
 });
 
-// Save entity
+// Save (create or update)
 document.getElementById('saveEntityBtn').addEventListener('click', async () => {
     const statusEl = document.getElementById('entityStatus');
     const nameVal = document.getElementById('entName').value.trim();
@@ -727,20 +780,17 @@ document.getElementById('saveEntityBtn').addEventListener('click', async () => {
     formData.append("CollisionWidth", document.getElementById('entColW').value || "64");
     formData.append("CollisionHeight", document.getElementById('entColH').value || "64");
     if (jsonPayload) formData.append("animationsJson", jsonPayload);
+    if (editingEntityId) {
+        formData.append("entityId", editingEntityId);  // ← this tells doPost to update
+    }
 
-    statusEl.textContent = "Saving entity...";
+    statusEl.textContent = editingEntityId ? "Updating entity..." : "Saving new entity...";
 
     try {
         await fetch(SCRIPT_URL, { method: 'POST', body: formData, mode: 'no-cors' });
-        statusEl.textContent = `Entity "${nameVal}" saved successfully.`;
-        // Clear form
-        document.querySelectorAll('#entities input:not([type=checkbox]), #entities textarea').forEach(el => el.value = '');
-        document.getElementById('entType').value = 'Object';
-        document.getElementById('animSheetFile').value = '';
-        document.getElementById('animFilename').value = '';
-        animData = {};
-        
-        entCtx.clearRect(0,0,entPreviewCanvas.width, entPreviewCanvas.height);
+        statusEl.textContent = editingEntityId ? `Entity ${editingEntityId} updated.` : `Entity "${nameVal}" created.`;
+        loadEntities(); // refresh list
+        document.getElementById('newEntityBtn').click(); // clear form
     } catch (err) {
         console.error(err);
         statusEl.textContent = "Save failed – check console/network";
