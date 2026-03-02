@@ -573,9 +573,7 @@ let previewImage = null;
 let frameIndex = 0;
 let lastFrameTs = 0;
 
-function updateJsonPreview() {
-    document.getElementById('animJsonPreview').textContent = JSON.stringify(animData, null, 2);
-}
+
 
 function loadAndAnimatePreview() {
     if (!animData.previewDataUrl) {
@@ -643,7 +641,7 @@ document.getElementById('animSheetFile').addEventListener('change', e => {
             fps: parseInt(document.getElementById('animFps').value) || 10,
             loop: true
         };
-        updateJsonPreview();
+       
         loadAndAnimatePreview();
     };
     reader.readAsDataURL(file);
@@ -657,7 +655,7 @@ document.getElementById('animSheetFile').addEventListener('change', e => {
             animData.frameHeight = parseInt(document.getElementById('frameH').value) || 64;
             animData.framesPerAnim = parseInt(document.getElementById('framesPerAnim').value) || 4;
             animData.fps = parseInt(document.getElementById('animFps').value) || 10;
-            updateJsonPreview();
+            
             loadAndAnimatePreview();
         }
     });
@@ -703,7 +701,7 @@ document.getElementById('saveEntityBtn').addEventListener('click', async () => {
         document.getElementById('animSheetFile').value = '';
         document.getElementById('animFilename').value = '';
         animData = {};
-        updateJsonPreview();
+        
         entCtx.clearRect(0,0,entPreviewCanvas.width, entPreviewCanvas.height);
     } catch (err) {
         console.error(err);
@@ -713,7 +711,7 @@ document.getElementById('saveEntityBtn').addEventListener('click', async () => {
 
 // Init preview
 requestAnimationFrame(animate);
-updateJsonPreview();
+
 
 // ────────────────────────────────────────────────
 // INITIALIZATION – UNCHANGED (no loadEntities)
