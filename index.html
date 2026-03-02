@@ -545,6 +545,43 @@ async function saveMap() {
         alert("Save failed: " + err.message);
     }
 }
+    async function loadEntities() {
+    try {
+        const r = await fetch(`${SCRIPT_URL}?action=getEntities`);
+        const data = await r.json();
+        console.log("Entities loaded:", data); // debug – see what comes back
+        if (data.status === "success") {
+            const tbody = document.querySelector('#entitiesTable tbody');
+            tbody.innerHTML = '';
+            if (data.entities && data.entities.length > 0) {
+                data.entities.forEach(ent => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${ent.entityId || ''}</td>
+                        <td>${ent.type || ''}</td>
+                        <td>${ent.name || ''}</td>
+                        <td>$$   {(ent.description || '').substring(0, 50)}   $${(ent.description || '').length > 50 ? '...' : ''}</td>
+                        <td><button class="btn-secondary edit-btn" data-id="${ent.entityId || ''}">Edit</button></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+                // Add edit click handlers (basic version – logs ID)
+                document.querySelectorAll('.edit-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        console.log("Edit clicked for:", btn.dataset.id);
+                        // Later: add load into form here
+                    });
+                });
+            } else {
+                tbody.innerHTML = '<tr><td colspan="5">No entities created yet</td></tr>';
+            }
+        } else {
+            console.warn("getEntities failed:", data);
+        }
+    } catch (err) {
+        console.error("Failed to load entities:", err);
+    }
+}
 
 // ────────────────────────────────────────────────
 // TAB SWITCHING – UNCHANGED (no loadEntities call)
