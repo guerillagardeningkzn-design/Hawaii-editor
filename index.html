@@ -568,6 +568,39 @@ const entCtx = entPreviewCanvas.getContext('2d');
 let previewImage = null;
 let frameIndex = 0;
 let lastFrameTs = 0;
+    async function loadEntities() {
+    try {
+        const r = await fetch(`${SCRIPT_URL}?action=getEntities`);
+        const data = await r.json();
+        if (data.status === "success") {
+            const tbody = document.querySelector('#entitiesTable tbody');
+            tbody.innerHTML = '';
+            if (data.entities && data.entities.length > 0) {
+                data.entities.forEach(ent => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${ent.entityId}</td>
+                        <td>${ent.type}</td>
+                        <td>${ent.name}</td>
+                        <td>${ent.description.substring(0,50)}${ent.description.length > 50 ? '...' : ''}</td>
+                        <td><button class="btn-secondary edit-btn" data-id="${ent.entityId}">Edit</button></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+                // Add edit click handlers
+                document.querySelectorAll('.edit-btn').forEach(btn => {
+                    btn.addEventListener('click', () => loadEntityForEdit(btn.dataset.id));
+                });
+            } else {
+                tbody.innerHTML = '<tr><td colspan="5">No entities yet</td></tr>';
+            }
+        } else {
+            console.warn("getEntities failed:", data.error);
+        }
+    } catch (err) {
+        console.error("Failed to load entities list:", err);
+    }
+}
 
 function updateJsonPreview() {
     document.getElementById('animJsonPreview').textContent = JSON.stringify(animData, null, 2);
