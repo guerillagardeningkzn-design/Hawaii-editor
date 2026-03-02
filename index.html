@@ -558,6 +558,7 @@ document.querySelectorAll('.tab-button').forEach(btn => {
         btn.classList.add('active');
         if (tabId === "maps") loadMaps();
         if (tabId === "hotspots") loadMapsIntoDropdown();
+        if (tabId === "entities") loadEntities();
         // NO loadEntities() here – list is loaded on page load only
     });
 });
@@ -718,6 +719,7 @@ requestAnimationFrame(animate);
 // ────────────────────────────────────────────────
 window.addEventListener('load', () => {
     loadMapsIntoDropdown();       // hotspots
+    loadEntities();
 });
 
 document.getElementById('saveMapBtn').addEventListener('click', saveMap);
