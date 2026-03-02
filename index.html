@@ -43,17 +43,15 @@
         .btn-clear:hover:not(:disabled) { background:#dc2626; }
         button:disabled { opacity:0.5; cursor:not-allowed; }
         #status, #entityStatus { padding:12px 16px; border-radius:8px; background:#111827; border:1px solid #334155; font-family:monospace; min-height:1.4em; }
-        .canvas-wrapper { position:relative; background:#0f172a; border-radius:12px; overflow:hidden; border:1px solid #334155; margin:16px 0; max-width:100%; overflow-x:auto; }
-        canvas { display:block; touch-action:none; image-rendering:pixelated; }
-        .point-label {
-            position:absolute; color:#fbbf24; font-size:11px; font-weight:bold; pointer-events:none; transform:translate(-50%,-150%);
-            text-shadow:0 0 6px black, 1px 1px 3px black;
-        }
+        .canvas-wrapper { position:relative; background:#0f172a; border-radius:12px; overflow:hidden; border:1px solid #334155; margin:16px 0; max-width:100%; overflow-x:auto; height:500px; }
+        canvas { display:block; touch-action:none; image-rendering:pixelated; width:100%; height:100%; }
+        .point-label { position:absolute; color:#fbbf24; font-size:11px; font-weight:bold; pointer-events:none; transform:translate(-50%,-150%); text-shadow:0 0 6px black, 1px 1px 3px black; }
         small.note { color:#94a3b8; font-size:0.85rem; display:block; margin-top:4px; }
-        table { width:100%; border-collapse:collapse; margin-top:16px; cursor:pointer; }
+        table { width:100%; border-collapse:collapse; margin-top:16px; }
         th, td { padding:10px; border:1px solid #334155; text-align:left; }
         th { background:#111827; }
         tr:hover { background:#1e293b; }
+        #entPreviewCanvas { background:#1e293b; }
     </style>
 </head>
 <body>
@@ -64,16 +62,16 @@
     <div class="tabs">
         <button class="tab-button active" data-tab="builder">Map / Page Builder</button>
         <button class="tab-button" data-tab="maps">Maps</button>
-        <button class="tab-button" data-tab="entities">Entities List</button>
+        <button class="tab-button" data-tab="entities">Entities</button>
         <button class="tab-button" data-tab="preview">Preview & Export</button>
     </div>
 
-    <!-- Map / Page Builder Tab (formerly Hotspots) -->
+    <!-- Map / Page Builder -->
     <div id="builder" class="tab-content active">
         <div class="controls">
             <div class="input-group">
                 <label for="mapSelect">Map / Room</label>
-                <select id="mapSelect"><option value="">— select map —</option></select>
+                <select id="mapSelect"><option value="">— select —</option></select>
             </div>
             <div class="input-group">
                 <label for="nameInput">Name</label>
@@ -81,99 +79,127 @@
             </div>
             <div class="input-group">
                 <label for="descInput">Description / Dialog</label>
-                <textarea id="descInput" placeholder="What happens when tapped..."></textarea>
+                <textarea id="descInput" placeholder="What happens..."></textarea>
             </div>
             <div class="input-group">
-                <label for="typeSelect">Type (defines folder & behavior)</label>
+                <label for="typeSelect">Type</label>
                 <select id="typeSelect">
                     <option value="">— select type —</option>
                     <option value="Marker">Marker / Sign</option>
                     <option value="Npc">Npc</option>
                     <option value="Pickup">Pickup / Collectable</option>
                     <option value="Object">Object / Interactable</option>
-                    <option value="Zoomto">Zoom To (point transition)</option>
+                    <option value="Zoomto">Zoom To (point)</option>
                     <option value="Map">Map (full transition)</option>
                 </select>
             </div>
             <div class="input-group" id="targetGroup" style="display:none;">
-                <label for="targetInput">Target Map/Image</label>
-                <input type="text" id="targetInput" placeholder="e.g. cellar.jpg or cellar">
+                <label for="targetInput">Target (image or map name)</label>
+                <input type="text" id="targetInput" placeholder="e.g. cellar.jpg">
             </div>
             <div class="input-group">
-                <label for="imageInput">Upload Image (local preview)</label>
+                <label for="imageInput">Upload Image (preview only)</label>
                 <input type="file" id="imageInput" accept="image/*">
             </div>
             <div class="input-group">
-                <label for="filenameInput">GitHub Filename (auto-suggested)</label>
-                <input type="text" id="filenameInput" placeholder="e.g. collectables/pearl.png" required>
-                <small class="note">Must match repo path: images/[this-value]. Upload to correct subfolder later.</small>
+                <label for="filenameInput">GitHub Path (images/…)</label>
+                <input type="text" id="filenameInput" placeholder="collectables/pearl.png" required>
+                <small class="note">Exact path after /images/ in repo. Case sensitive.</small>
             </div>
             <button id="clearBtn" class="btn-secondary" disabled>Clear Placement</button>
             <button id="saveBtn" class="btn-primary" disabled>Save Entity</button>
         </div>
 
-        <div id="status">Load a map and image to start placing entities</div>
+        <div id="status">Select map and place entity on canvas</div>
         <div class="canvas-wrapper"><canvas id="canvas"></canvas></div>
-        <pre id="result">Save result will appear here...</pre>
     </div>
 
     <!-- Maps Tab -->
     <div id="maps" class="tab-content">
-        <h2>Create New Map</h2>
+        <h2>Create / Edit Map</h2>
         <div class="controls">
             <div class="input-group">
                 <label for="mapName">Map Name</label>
                 <input type="text" id="mapName" placeholder="e.g. Forest Clearing">
             </div>
             <div class="input-group">
-                <label for="mapBackground">Background Filename</label>
-                <input type="text" id="mapBackground" placeholder="e.g. backgrounds/forest.jpg">
-                <small class="note">Must exist in repo /images/backgrounds/</small>
+                <label for="mapBackground">Background Path</label>
+                <input type="text" id="mapBackground" placeholder="backgrounds/forest.jpg">
+                <small class="note">Path after /images/ in repo</small>
             </div>
             <div class="input-group">
-                <label for="mapDesc">Description</label>
-                <textarea id="mapDesc" placeholder="Optional notes..."></textarea>
+                <label for="mapDesc">Notes</label>
+                <textarea id="mapDesc"></textarea>
             </div>
             <button id="saveMapBtn" class="btn-primary">Save Map</button>
         </div>
         <h3>Existing Maps</h3>
         <table id="mapsTable">
-            <thead><tr><th>MapID</th><th>Name</th><th>Background</th><th>Description</th></tr></thead>
+            <thead><tr><th>ID</th><th>Name</th><th>Background</th><th>Notes</th></tr></thead>
             <tbody></tbody>
         </table>
     </div>
 
-    <!-- Entities List Tab (view only for now) -->
+    <!-- Entities Tab -->
     <div id="entities" class="tab-content">
-        <h2>Existing Entities</h2>
+        <h2>Entities</h2>
         <table id="entitiesTable">
             <thead>
                 <tr>
-                    <th>ID</th><th>MapID</th><th>Type</th><th>Name</th><th>Filename</th><th>Description</th>
+                    <th>ID</th><th>Map</th><th>Type</th><th>Name</th><th>Path</th><th>Pos</th><th>Preview</th>
                 </tr>
             </thead>
             <tbody></tbody>
         </table>
+
+        <h3>Animation Preview (for selected / new)</h3>
+        <div class="controls">
+            <div class="input-group">
+                <label for="animSheetFile">Sprite Sheet (optional)</label>
+                <input type="file" id="animSheetFile" accept="image/*">
+            </div>
+            <div class="input-group">
+                <label for="animFilename">Filename in repo</label>
+                <input type="text" id="animFilename" placeholder="npcs/hermit-idle.png">
+            </div>
+            <div class="input-group">
+                <label for="frameW">Frame W</label>
+                <input type="number" id="frameW" value="64" min="1">
+            </div>
+            <div class="input-group">
+                <label for="frameH">Frame H</label>
+                <input type="number" id="frameH" value="64" min="1">
+            </div>
+            <div class="input-group">
+                <label for="framesPerAnim">Frames</label>
+                <input type="number" id="framesPerAnim" value="4" min="1">
+            </div>
+            <div class="input-group">
+                <label for="animFps">FPS</label>
+                <input type="number" id="animFps" value="10" min="1">
+            </div>
+        </div>
+        <div class="canvas-wrapper" style="height:240px; max-width:480px; margin:16px auto;">
+            <canvas id="entPreviewCanvas" width="480" height="240"></canvas>
+        </div>
+        <div id="entityStatus">Ready</div>
     </div>
 
-    <!-- Preview & Export Tab (placeholder) -->
+    <!-- Preview & Export -->
     <div id="preview" class="tab-content">
         <h2>Preview & Export</h2>
-        <p>Coming soon – full map preview with placed entities</p>
-        <button class="btn-primary" disabled>Export JSON</button>
-        <button class="btn-secondary" id="pushRepoBtn">Push New Files to Repo (Manual Step)</button>
-        <p class="note" style="color:#ef4444;">Note: Automatic push from browser is insecure without backend. Use GitHub Desktop / CLI / web upload for now.</p>
+        <p>Full map preview coming soon</p>
+        <button class="btn-secondary" id="exportBtn">Export JSON (placeholder)</button>
     </div>
 </div>
 
 <script>
-// ────────────────────────────────────────────────
 // CONFIG
-// ────────────────────────────────────────────────
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz187kpP3gtvzMtVsMq4COdMp2LR87SifTT-AnMIr-KGnsjNCxnWEP1kshSWVdz7ndE/exec";
-const ASSET_BASE = window.location.hostname.includes('github.io') 
-    ? 'images/' 
-    : 'https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/images/';  // ← CHANGE THIS
+
+const ASSET_BASE = window.location.hostname.includes('github.io')
+    ? 'images/'
+    : 'https://raw.githubusercontent.com/guerillagardeningkzn-design/Hawaii-editor/main/images/';  // ← CHANGE THIS
 
 const typeToFolder = {
     'Pickup': 'collectables',
@@ -185,178 +211,254 @@ const typeToFolder = {
 };
 
 // ────────────────────────────────────────────────
-// SHARED – Canvas Setup
+// BUILDER – CANVAS & PLACEMENT
 // ────────────────────────────────────────────────
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
-let img = new Image();
-let placedPoint = null; // {x,y} for single point entity
-let points = []; // fallback if we ever re-add polygons
+let bgImg = new Image();
+let currentPoint = null;
 
-function fitCanvasToImage() {
-    if (!img.src || img.naturalWidth <= 0) return;
-    canvas.width = img.naturalWidth;
-    canvas.height = img.naturalHeight;
-    redraw();
+function resizeCanvas() {
+    if (bgImg.naturalWidth > 0) {
+        canvas.width = Math.min(bgImg.naturalWidth, window.innerWidth - 80);
+        canvas.height = bgImg.naturalHeight * (canvas.width / bgImg.naturalWidth);
+    }
 }
 
-function redraw() {
+function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    if (img.src) ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-    
-    // Draw placed point
-    if (placedPoint) {
+    if (bgImg.src) ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
+    if (currentPoint) {
         ctx.fillStyle = '#fbbf24';
         ctx.beginPath();
-        ctx.arc(placedPoint.x, placedPoint.y, 8, 0, Math.PI * 2);
+        ctx.arc(currentPoint.x, currentPoint.y, 10, 0, Math.PI*2);
         ctx.fill();
-        ctx.strokeStyle = '#fff';
+        ctx.strokeStyle = 'white';
         ctx.lineWidth = 2;
         ctx.stroke();
     }
 }
 
 canvas.addEventListener('click', e => {
-    if (!img.src) return;
+    if (!bgImg.src) return;
     const rect = canvas.getBoundingClientRect();
-    const x = Math.round(e.clientX - rect.left);
-    const y = Math.round(e.clientY - rect.top);
-    placedPoint = { x: Math.max(0, Math.min(x, canvas.width)), y: Math.max(0, Math.min(y, canvas.height)) };
-    redraw();
-    updateUI();
+    const scaleX = canvas.width / bgImg.naturalWidth;
+    const scaleY = canvas.height / bgImg.naturalHeight;
+    const x = Math.round((e.clientX - rect.left) / scaleX);
+    const y = Math.round((e.clientY - rect.top) / scaleY);
+    currentPoint = { x, y };
+    draw();
+    updateSaveButton();
 });
 
-// ────────────────────────────────────────────────
-// BUILDER TAB LOGIC
-// ────────────────────────────────────────────────
-const typeSelect = document.getElementById('typeSelect');
-const targetGroup = document.getElementById('targetGroup');
-const imageInput = document.getElementById('imageInput');
-const filenameInput = document.getElementById('filenameInput');
-const nameInput = document.getElementById('nameInput');
-const descInput = document.getElementById('descInput');
-const targetInput = document.getElementById('targetInput');
-const saveBtn = document.getElementById('saveBtn');
-const clearBtn = document.getElementById('clearBtn');
-const statusEl = document.getElementById('status');
-
-typeSelect.addEventListener('change', () => {
-    const typ = typeSelect.value;
-    targetGroup.style.display = (typ === 'Zoomto' || typ === 'Map') ? 'block' : 'none';
-    if (typ in typeToFolder) {
-        const suggested = typeToFolder[typ] + '/';
-        if (!filenameInput.value.startsWith(suggested)) {
-            filenameInput.value = suggested + (filenameInput.value.split('/').pop() || '');
-        }
-    }
-    updateUI();
-});
-
-imageInput.addEventListener('change', e => {
+document.getElementById('imageInput').addEventListener('change', e => {
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = ev => {
-        img.src = ev.target.result;
-        img.onload = () => {
-            fitCanvasToImage();
-            placedPoint = null;
-            redraw();
-            // Suggest filename from upload
-            const folder = typeSelect.value in typeToFolder ? typeToFolder[typeSelect.value] + '/' : '';
-            filenameInput.value = folder + file.name;
-            updateUI();
+        bgImg.onload = () => {
+            resizeCanvas();
+            draw();
+            // suggest filename
+            const typ = document.getElementById('typeSelect').value;
+            const folder = typ && typeToFolder[typ] ? typeToFolder[typ] + '/' : '';
+            document.getElementById('filenameInput').value = folder + file.name;
         };
+        bgImg.src = ev.target.result;
     };
     reader.readAsDataURL(file);
 });
 
-function updateUI() {
-    const hasMap = !!document.getElementById('mapSelect').value;
-    const hasType = !!typeSelect.value;
-    const hasName = nameInput.value.trim().length > 0;
-    const hasPoint = !!placedPoint;
-    saveBtn.disabled = !(hasMap && hasType && hasName && hasPoint);
-    clearBtn.disabled = !hasPoint;
-    statusEl.textContent = hasPoint ? `Entity placed at (${placedPoint.x}, ${placedPoint.y})` : 'Click canvas to place entity';
+function updateSaveButton() {
+    const map = document.getElementById('mapSelect').value;
+    const type = document.getElementById('typeSelect').value;
+    const name = document.getElementById('nameInput').value.trim();
+    const filename = document.getElementById('filenameInput').value.trim();
+    document.getElementById('saveBtn').disabled = !(map && type && name && filename && currentPoint);
 }
 
-clearBtn.addEventListener('click', () => {
-    placedPoint = null;
-    redraw();
-    updateUI();
+document.getElementById('clearBtn').addEventListener('click', () => {
+    currentPoint = null;
+    draw();
+    updateSaveButton();
 });
 
-saveBtn.addEventListener('click', async () => {
-    const mapId = document.getElementById('mapSelect').value;
-    const typ = typeSelect.value;
-    if (!mapId || !typ) return;
+document.getElementById('typeSelect').addEventListener('change', e => {
+    const typ = e.target.value;
+    document.getElementById('targetGroup').style.display = (typ === 'Zoomto' || typ === 'Map') ? 'block' : 'none';
+    updateSaveButton();
+    // auto-suggest folder
+    if (typ in typeToFolder) {
+        let val = document.getElementById('filenameInput').value;
+        const folder = typeToFolder[typ] + '/';
+        if (!val.startsWith(folder)) {
+            val = folder + val.split('/').pop();
+            document.getElementById('filenameInput').value = val;
+        }
+    }
+});
 
+// Save entity
+document.getElementById('saveBtn').addEventListener('click', async () => {
     const formData = new FormData();
     formData.append("sheet", "Entities");
-    formData.append("mapId", mapId);
-    formData.append("type", typ);
-    formData.append("name", nameInput.value.trim());
-    formData.append("description", descInput.value.trim());
-    formData.append("filename", filenameInput.value.trim());
-    formData.append("positionX", placedPoint.x);
-    formData.append("positionY", placedPoint.y);
-    if (typ === 'Zoomto' || typ === 'Map') {
-        formData.append("target", targetInput.value.trim());
+    formData.append("mapId", document.getElementById('mapSelect').value);
+    formData.append("type", document.getElementById('typeSelect').value);
+    formData.append("name", document.getElementById('nameInput').value.trim());
+    formData.append("description", document.getElementById('descInput').value.trim());
+    formData.append("filename", document.getElementById('filenameInput').value.trim());
+    formData.append("positionX", currentPoint.x);
+    formData.append("positionY", currentPoint.y);
+    if (['Zoomto','Map'].includes(document.getElementById('typeSelect').value)) {
+        formData.append("target", document.getElementById('targetInput').value.trim());
     }
-
-    statusEl.textContent = "Saving entity...";
 
     try {
         await fetch(SCRIPT_URL, { method: 'POST', body: formData, mode: 'no-cors' });
-        statusEl.textContent = `Saved ${typ} "${nameInput.value}" at (${placedPoint.x},${placedPoint.y})`;
-        // Reset form
-        nameInput.value = descInput.value = targetInput.value = '';
-        placedPoint = null;
-        redraw();
+        document.getElementById('status').textContent = 'Entity saved ✓';
+        currentPoint = null;
+        draw();
     } catch (err) {
-        statusEl.textContent = "Save failed – check console";
+        document.getElementById('status').textContent = 'Save failed – check console';
         console.error(err);
     }
 });
 
 // ────────────────────────────────────────────────
-// MAPS & ENTITIES LOADING (unchanged basics + filename preview)
+// MAPS DROPDOWN & LIST
 // ────────────────────────────────────────────────
-// ... (add loadMaps(), loadMapsIntoDropdown(), saveMap(), loadEntities() from your original code)
-// For brevity, assume you copy them here and add filename preview where needed
+async function loadMapsIntoDropdown() {
+    try {
+        const r = await fetch(`${SCRIPT_URL}?action=getMaps`);
+        const data = await r.json();
+        if (data.status === "success") {
+            const sel = document.getElementById('mapSelect');
+            sel.innerHTML = '<option value="">— select —</option>';
+            data.maps?.forEach(m => {
+                const opt = document.createElement('option');
+                opt.value = m.mapId;
+                opt.textContent = m.name + ' (' + m.mapId + ')';
+                sel.appendChild(opt);
+            });
+        }
+    } catch (e) { console.error(e); }
+}
 
-// Example: in loadEntityForEdit or list, show preview
-// previewImg.src = ASSET_BASE + entity.filename;
+async function loadMaps() {
+    try {
+        const r = await fetch(`${SCRIPT_URL}?action=getMaps`);
+        const data = await r.json();
+        if (data.status === "success") {
+            const tbody = document.querySelector('#mapsTable tbody');
+            tbody.innerHTML = '';
+            data.maps?.forEach(m => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${m.mapId}</td><td>${m.name}</td><td>${m.background}</td><td>${m.description||''}</td>`;
+                tbody.appendChild(tr);
+            });
+        }
+    } catch (e) { console.error(e); }
+}
 
-// ────────────────────────────────────────────────
-// PUSH BUTTON (placeholder)
-// ────────────────────────────────────────────────
-document.getElementById('pushRepoBtn').addEventListener('click', () => {
-    alert("Automatic push from browser requires GitHub Personal Access Token (insecure here).\n\nRecommended:\n1. Use GitHub web → Add file / Upload files\n2. Or GitHub Desktop / CLI: git add images/* && git commit -m 'Add assets' && git push");
+document.getElementById('saveMapBtn').addEventListener('click', async () => {
+    const name = document.getElementById('mapName').value.trim();
+    if (!name) return alert("Map name required");
+    const formData = new FormData();
+    formData.append("sheet", "Maps");
+    formData.append("name", name);
+    formData.append("background", document.getElementById('mapBackground').value.trim());
+    formData.append("description", document.getElementById('mapDesc').value.trim());
+    try {
+        await fetch(SCRIPT_URL, {method:'POST', body:formData, mode:'no-cors'});
+        loadMaps();
+        loadMapsIntoDropdown();
+    } catch (e) { console.error(e); }
 });
 
 // ────────────────────────────────────────────────
-// TAB SWITCHING + INIT
+// ENTITIES LIST & ANIMATION PREVIEW
+// ────────────────────────────────────────────────
+async function loadEntities() {
+    try {
+        const r = await fetch(`${SCRIPT_URL}?action=getEntities`);
+        const data = await r.json();
+        if (data.status === "success") {
+            const tbody = document.querySelector('#entitiesTable tbody');
+            tbody.innerHTML = data.entities?.length ? '' : '<tr><td colspan="7">No entities yet</td></tr>';
+            data.entities?.forEach(e => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${e.entityId||''}</td>
+                    <td>${e.mapId||''}</td>
+                    <td>${e.type||''}</td>
+                    <td>${e.name||''}</td>
+                    <td>${e.filename||''}</td>
+                    <td>${e.positionX||0},${e.positionY||0}</td>
+                    <td><img src="${ASSET_BASE}${e.filename||''}" style="max-height:48px;" onerror="this.src='data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=='"></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+    } catch (e) { console.error(e); }
+}
+
+// Animation preview (from original)
+const previewCanvas = document.getElementById('entPreviewCanvas');
+const pCtx = previewCanvas.getContext('2d');
+let previewImg = null;
+let frame = 0;
+let last = 0;
+
+function animate(ts) {
+    if (!previewImg) return requestAnimationFrame(animate);
+    if (!last) last = ts;
+    if (ts - last > 1000 / document.getElementById('animFps').value) {
+        frame = (frame + 1) % document.getElementById('framesPerAnim').value;
+        last = ts;
+    }
+    pCtx.clearRect(0,0,previewCanvas.width,previewCanvas.height);
+    const fw = +document.getElementById('frameW').value;
+    const fh = +document.getElementById('frameH').value;
+    pCtx.drawImage(previewImg, frame*fw, 0, fw, fh, 0, 0, fw*2, fh*2);
+    requestAnimationFrame(animate);
+}
+
+document.getElementById('animSheetFile').addEventListener('change', e => {
+    const f = e.target.files[0];
+    if (!f) return;
+    const rd = new FileReader();
+    rd.onload = ev => {
+        previewImg = new Image();
+        previewImg.src = ev.target.result;
+        previewImg.onload = () => {
+            document.getElementById('animFilename').value = f.name;
+            frame = 0;
+        };
+    };
+    rd.readAsDataURL(f);
+});
+
+requestAnimationFrame(animate);
+
+// ────────────────────────────────────────────────
+// TAB HANDLING
 // ────────────────────────────────────────────────
 document.querySelectorAll('.tab-button').forEach(btn => {
     btn.addEventListener('click', () => {
-        document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+        document.querySelectorAll('.tab-content').forEach(c => c.style.display='none');
         document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
-        const tabId = btn.dataset.tab;
-        document.getElementById(tabId).style.display = 'block';
+        const tab = btn.dataset.tab;
+        document.getElementById(tab).style.display = 'block';
         btn.classList.add('active');
-        // Load data on tab open
-        if (tabId === 'maps') loadMaps();
-        if (tabId === 'builder') loadMapsIntoDropdown();
-        if (tabId === 'entities') loadEntities();
+
+        if (tab === 'builder') loadMapsIntoDropdown();
+        if (tab === 'maps') loadMaps();
+        if (tab === 'entities') loadEntities();
     });
 });
 
-// Init
-window.addEventListener('load', () => {
-    loadEntities(); // or whichever you want first
-});
+// Initial load
+loadMapsIntoDropdown();
 </script>
 </body>
 </html>
