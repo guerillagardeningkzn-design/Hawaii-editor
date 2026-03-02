@@ -559,28 +559,22 @@ document.querySelectorAll('.tab-button').forEach(btn => {
 });
 
 // ────────────────────────────────────────────────
-// ENTITIES – FULL CREATE + EDIT/UPDATE
+// ENTITIES – SIMPLIFIED (single animation, no directions)
 // ────────────────────────────────────────────────
-let animCollection = {};
-let editingEntityId = null;
+let animData = {}; // single object, not collection – only one state
 
 const entPreviewCanvas = document.getElementById('entPreviewCanvas');
 const entCtx = entPreviewCanvas.getContext('2d');
 let previewImage = null;
 let frameIndex = 0;
 let lastFrameTs = 0;
-let currentPreviewState = 'idle';
-let currentPreviewDir = 0;
-
-const directions = ['down', 'down-right', 'right', 'up-right', 'up', 'up-left', 'left', 'down-left'];
 
 function updateJsonPreview() {
-    document.getElementById('animJsonPreview').textContent = JSON.stringify(animCollection, null, 2);
+    document.getElementById('animJsonPreview').textContent = JSON.stringify(animData, null, 2);
 }
 
 function loadAndAnimatePreview() {
-    const stateData = animCollection[currentPreviewState];
-    if (!stateData?.previewDataUrl) {
+    if (!animData.previewDataUrl) {
         entCtx.fillStyle = '#1e293b';
         entCtx.fillRect(0,0,entPreviewCanvas.width, entPreviewCanvas.height);
         entCtx.fillStyle = '#94a3b8';
@@ -588,201 +582,135 @@ function loadAndAnimatePreview() {
         entCtx.fillText('No sprite loaded', 30, 180);
         return;
     }
+
     previewImage = new Image();
-    previewImage.src = stateData.previewDataUrl;
+    previewImage.src = animData.previewDataUrl;
     previewImage.onload = () => { animate(); };
     previewImage.onerror = () => {
         entCtx.fillStyle = '#7f1d1d';
         entCtx.fillRect(0,0,entPreviewCanvas.width, entPreviewCanvas.height);
         entCtx.fillStyle = '#fff';
-        entCtx.fillText('Failed to load preview', 20, 180);
+        entCtx.fillText('Failed to load', 20, 180);
     };
 }
 
 function animate(ts = 0) {
-    const data = animCollection[currentPreviewState];
-    if (!data || !previewImage) return;
+    if (!previewImage || !animData.framesPerAnim) return;
+
     if (!lastFrameTs) lastFrameTs = ts;
     const delta = ts - lastFrameTs;
-    if (delta > (1000 / data.fps)) {
-        frameIndex = (frameIndex + 1) % data.framesPerDir;
+
+    if (delta > (1000 / animData.fps)) {
+        frameIndex = (frameIndex + 1) % animData.framesPerAnim;
         lastFrameTs = ts;
     }
+
     entCtx.clearRect(0,0,entPreviewCanvas.width, entPreviewCanvas.height);
+
     const scale = 3;
-    const dw = data.frameWidth * scale;
-    const dh = data.frameHeight * scale;
+    const dw = animData.frameWidth * scale;
+    const dh = animData.frameHeight * scale;
     const ox = (entPreviewCanvas.width - dw) / 2;
     const oy = (entPreviewCanvas.height - dh) / 2;
-    if (data.dirMode === '8rows') {
-        const row = currentPreviewDir;
-        const sx = frameIndex * data.frameWidth;
-        const sy = row * data.frameHeight;
-        entCtx.drawImage(previewImage, sx, sy, data.frameWidth, data.frameHeight, ox, oy, dw, dh);
-    } else {
-        entCtx.drawImage(previewImage, 0, 0, previewImage.width, previewImage.height, ox, oy, dw*1.5, dh*1.5);
-    }
+
+    // Single row (no directions)
+    const sx = frameIndex * animData.frameWidth;
+    const sy = 0;
+    entCtx.drawImage(previewImage, sx, sy, animData.frameWidth, animData.frameHeight, ox, oy, dw, dh);
+
     requestAnimationFrame(animate);
 }
 
-function buildDirectionButtons() {
-    const container = document.getElementById('previewDirButtons');
-    container.innerHTML = '';
-    directions.forEach((dirName, index) => {
-        const btn = document.createElement('div');
-        btn.className = 'dir-btn';
-        btn.textContent = dirName;
-        if (index === currentPreviewDir) btn.classList.add('active');
-        btn.onclick = () => {
-            currentPreviewDir = index;
-            document.getElementById('previewDirName').textContent = dirName;
-            container.querySelectorAll('.dir-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-        };
-        container.appendChild(btn);
-    });
-}
-
-function syncFormToState() {
-    const stateKey = document.getElementById('animState').value;
-    const fileInput = document.getElementById('animSheetFile');
-    const filename = document.getElementById('animFilename').value.trim();
-    const existing = animCollection[stateKey] || {};
-    const previewDataUrl = fileInput.files[0] ? null : existing.previewDataUrl;
-    animCollection[stateKey] = {
-        filename: filename || (fileInput.files[0] ? fileInput.files[0].name : ''),
-        previewDataUrl,
-        frameWidth: parseInt(document.getElementById('frameW').value) || 48,
-        frameHeight: parseInt(document.getElementById('frameH').value) || 64,
-        framesPerDir: parseInt(document.getElementById('framesPerDir').value) || 8,
-        fps: parseInt(document.getElementById('animFps').value) || 12,
-        loop: document.getElementById('animLoop').checked,
-        dirMode: document.getElementById('dirMode').value
-    };
-    document.getElementById('previewStateName').textContent = stateKey;
-    updateJsonPreview();
-    if (fileInput.files[0]) {
-        const reader = new FileReader();
-        reader.onload = e => {
-            animCollection[stateKey].previewDataUrl = e.target.result;
-            loadAndAnimatePreview();
-        };
-        reader.readAsDataURL(fileInput.files[0]);
-    } else if (previewDataUrl) {
-        loadAndAnimatePreview();
-    }
-}
-
-document.getElementById('animState').addEventListener('change', e => {
-    const state = e.target.value;
-    const data = animCollection[state] || {};
-    document.getElementById('animFilename').value = data.filename || '';
-    document.getElementById('frameW').value = data.frameWidth || 48;
-    document.getElementById('frameH').value = data.frameHeight || 64;
-    document.getElementById('framesPerDir').value = data.framesPerDir || 8;
-    document.getElementById('animFps').value = data.fps || 12;
-    document.getElementById('animLoop').checked = data.loop !== false;
-    document.getElementById('dirMode').value = data.dirMode || '8rows';
-    syncFormToState();
-});
-
-['animFilename','frameW','frameH','framesPerDir','animFps','animLoop','dirMode'].forEach(id => {
-    document.getElementById(id).addEventListener('input', syncFormToState);
-    document.getElementById(id).addEventListener('change', syncFormToState);
-});
-
+// Auto-fill filename + update data on file change
 document.getElementById('animSheetFile').addEventListener('change', e => {
-    if (e.target.files[0]) syncFormToState();
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Auto-fill filename field (readonly)
+    document.getElementById('animFilename').value = file.name;
+
+    const reader = new FileReader();
+    reader.onload = ev => {
+        animData = {
+            filename: file.name,
+            previewDataUrl: ev.target.result,
+            frameWidth: parseInt(document.getElementById('frameW').value) || 64,
+            frameHeight: parseInt(document.getElementById('frameH').value) || 64,
+            framesPerAnim: parseInt(document.getElementById('framesPerAnim').value) || 4,
+            fps: parseInt(document.getElementById('animFps').value) || 10,
+            loop: true
+        };
+        updateJsonPreview();
+        loadAndAnimatePreview();
+    };
+    reader.readAsDataURL(file);
 });
 
-document.getElementById('addAnimStateBtn').addEventListener('click', syncFormToState);
-
-// Load list of entities
-async function loadEntities() {
-    try {
-        const r = await fetch(`${SCRIPT_URL}?action=getEntities`);
-        const data = await r.json();
-        if (data.status === "success") {
-            const tbody = document.querySelector('#entitiesTable tbody');
-            tbody.innerHTML = '';
-            data.entities.forEach(ent => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${ent.entityId}</td>
-                    <td>${ent.type}</td>
-                    <td>${ent.name}</td>
-                    <td>${ent.description.substring(0,50)}${ent.description.length > 50 ? '...' : ''}</td>
-                    <td><button class="btn-secondary edit-btn" data-id="${ent.entityId}">Edit</button></td>
-                `;
-                tbody.appendChild(tr);
-            });
-            document.querySelectorAll('.edit-btn').forEach(btn => {
-                btn.addEventListener('click', () => loadEntityForEdit(btn.dataset.id));
-            });
+// Update data when other fields change
+['frameW','frameH','framesPerAnim','animFps'].forEach(id => {
+    document.getElementById(id).addEventListener('input', () => {
+        if (animData.filename) {
+            animData.frameWidth = parseInt(document.getElementById('frameW').value) || 64;
+            animData.frameHeight = parseInt(document.getElementById('frameH').value) || 64;
+            animData.framesPerAnim = parseInt(document.getElementById('framesPerAnim').value) || 4;
+            animData.fps = parseInt(document.getElementById('animFps').value) || 10;
+            updateJsonPreview();
+            loadAndAnimatePreview();
         }
-    } catch (err) {
-        console.error("Failed to load entities", err);
-    }
-}
-
-// Load entity data into form
-async function loadEntityForEdit(entityId) {
-    try {
-        const r = await fetch(`${SCRIPT_URL}?action=getEntities`);
-        const data = await r.json();
-        if (data.status === "success") {
-            const ent = data.entities.find(e => e.entityId === entityId);
-            if (ent) {
-                editingEntityId = entityId;
-                document.getElementById('entityId').value = entityId;
-                document.getElementById('entityFormTitle').textContent = `Edit Entity ${entityId}`;
-                document.getElementById('saveEntityBtn').textContent = "Update Entity";
-                document.getElementById('newEntityBtn').style.display = 'inline-block';
-
-                document.getElementById('entType').value = ent.type || 'Other';
-                document.getElementById('entName').value = ent.name || '';
-                document.getElementById('entDesc').value = ent.description || '';
-                document.getElementById('entColW').value = ent.collisionWidth || 32;
-                document.getElementById('entColH').value = ent.collisionHeight || 48;
-
-                // Clear and load animations
-                animCollection = {};
-                if (ent.animationsJson) {
-                    try {
-                        const parsed = JSON.parse(ent.animationsJson);
-                        Object.keys(parsed).forEach(key => {
-                            animCollection[key] = { ...parsed[key], previewDataUrl: null };
-                        });
-                        const firstState = Object.keys(animCollection)[0] || 'idle';
-                        document.getElementById('animState').value = firstState;
-                        syncFormToState();
-                    } catch (e) {
-                        console.error("Invalid animationsJson", e);
-                    }
-                }
-                updateJsonPreview();
-                loadAndAnimatePreview();
-            }
-        }
-    } catch (err) {
-        console.error("Load entity failed", err);
-    }
-}
-
-// Clear form for new entity
-document.getElementById('newEntityBtn').addEventListener('click', () => {
-    editingEntityId = null;
-    document.getElementById('entityId').value = '';
-    document.getElementById('entityFormTitle').textContent = 'Create New Entity';
-    document.getElementById('saveEntityBtn').textContent = 'Save New Entity';
-    document.getElementById('newEntityBtn').style.display = 'none';
-    document.querySelectorAll('#entities input:not([type=hidden]):not([type=checkbox]), #entities textarea').forEach(el => el.value = '');
-    document.getElementById('entType').value = 'NPC';
-    document.getElementById('animSheetFile').value = '';
-    animCollection = {};
-    updateJsonPreview();
-    loadAndAnimatePreview();
+    });
 });
+
+// Save entity
+document.getElementById('saveEntityBtn').addEventListener('click', async () => {
+    const statusEl = document.getElementById('entityStatus');
+    const nameVal = document.getElementById('entName').value.trim();
+    if (!nameVal) {
+        statusEl.textContent = "Name is required";
+        return;
+    }
+
+    const jsonPayload = animData.filename ? JSON.stringify({
+        idle: {
+            filename: animData.filename,
+            frameWidth: animData.frameWidth,
+            frameHeight: animData.frameHeight,
+            frames: animData.framesPerAnim,
+            fps: animData.fps,
+            loop: true
+        }
+    }) : "";
+
+    const formData = new FormData();
+    formData.append("sheet", "Entities");
+    formData.append("Type", document.getElementById('entType').value || "Object");
+    formData.append("Name", nameVal);
+    formData.append("Description", document.getElementById('entDesc').value.trim());
+    formData.append("CollisionWidth", document.getElementById('entColW').value || "64");
+    formData.append("CollisionHeight", document.getElementById('entColH').value || "64");
+    if (jsonPayload) formData.append("animationsJson", jsonPayload);
+
+    statusEl.textContent = "Saving entity...";
+
+    try {
+        await fetch(SCRIPT_URL, { method: 'POST', body: formData, mode: 'no-cors' });
+        statusEl.textContent = `Entity "${nameVal}" saved successfully.`;
+        // Clear form
+        document.querySelectorAll('#entities input:not([type=checkbox]), #entities textarea').forEach(el => el.value = '');
+        document.getElementById('entType').value = 'Object';
+        document.getElementById('animSheetFile').value = '';
+        document.getElementById('animFilename').value = '';
+        animData = {};
+        updateJsonPreview();
+        entCtx.clearRect(0,0,entPreviewCanvas.width, entPreviewCanvas.height);
+    } catch (err) {
+        console.error(err);
+        statusEl.textContent = "Save failed – check console/network";
+    }
+});
+
+// Init preview
+requestAnimationFrame(animate);
+updateJsonPreview();
 
 // Save (create or update)
 document.getElementById('saveEntityBtn').addEventListener('click', async () => {
