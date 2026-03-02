@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Game Content Editor</title>
+    <title>Game Content Editor – Map Builder</title>
     <style>
         :root {
             --bg: #0f0f17;
@@ -16,25 +16,350 @@
             --success: #22c55e;
             --danger: #ef4444;
         }
-        body {
-            margin: 0;
-            font-family: system-ui, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-            padding: 24px;
+        body { margin:0; font-family:system-ui,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; padding:24px; }
+        .container { max-width:1200px; margin:0 auto; }
+        h1 { margin:0 0 16px; color:#a5b4fc; text-align:center; }
+        .tabs { display:flex; border-bottom:1px solid #334155; margin-bottom:24px; overflow-x:auto; padding-bottom:4px; }
+        .tab-button { padding:12px 28px; background:transparent; border:none; color:var(--text-muted); font-size:1.05rem; cursor:pointer; white-space:nowrap; transition:all 0.15s; }
+        .tab-button:hover { color:var(--text); }
+        .tab-button.active { color:#a5b4fc; border-bottom:3px solid var(--primary); font-weight:600; }
+        .tab-content { display:none; }
+        .tab-content.active { display:block; }
+        .controls { display:flex; flex-wrap:wrap; gap:16px; margin-bottom:20px; }
+        .input-group { display:flex; flex-direction:column; min-width:220px; flex:1; }
+        label { margin-bottom:6px; font-weight:500; color:#cbd5e1; }
+        input, textarea, select {
+            padding:10px 12px; border-radius:8px; border:1px solid #4b5563; background:#111827; color:var(--text); font-size:1rem;
         }
-        .container { max-width: 1200px; margin: 0 auto; }
-        h1 { margin: 0 0 16px; color: #a5b4fc; text-align: center; }
-        .tabs { display: flex; border-bottom: 1px solid #334155; margin-bottom: 24px; overflow-x: auto; padding-bottom: 4px; }
-        .tab-button { padding: 12px 28px; background: transparent; border: none; color: var(--text-muted); font-size: 1.05rem; cursor: pointer; white-space: nowrap; transition: all 0.15s; }
-        .tab-button:hover { color: var(--text); }
-        .tab-button.active { color: #a5b4fc; border-bottom: 3px solid var(--primary); font-weight: 600; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        .controls { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 20px; }
-        .input-group { display: flex; flex-direction: column; min-width: 220px; flex: 1; }
-        label { margin-bottom: 6px; font-weight: 500; color: #cbd5e1; }
+        textarea { min-height:90px; resize:vertical; }
+        button {
+            padding:10px 20px; border:none; border-radius:8px; font-size:1rem; font-weight:500; cursor:pointer; transition:all 0.15s; height:40px;
+        }
+        .btn-primary { background:var(--primary); color:white; }
+        .btn-primary:hover:not(:disabled) { background:var(--primary-dark); }
+        .btn-secondary { background:#475569; color:white; }
+        .btn-secondary:hover:not(:disabled) { background:#334155; }
+        .btn-clear { background:var(--danger); color:white; }
+        .btn-clear:hover:not(:disabled) { background:#dc2626; }
+        button:disabled { opacity:0.5; cursor:not-allowed; }
+        #status, #entityStatus { padding:12px 16px; border-radius:8px; background:#111827; border:1px solid #334155; font-family:monospace; min-height:1.4em; }
+        .canvas-wrapper { position:relative; background:#0f172a; border-radius:12px; overflow:hidden; border:1px solid #334155; margin:16px 0; max-width:100%; overflow-x:auto; }
+        canvas { display:block; touch-action:none; image-rendering:pixelated; }
+        .point-label {
+            position:absolute; color:#fbbf24; font-size:11px; font-weight:bold; pointer-events:none; transform:translate(-50%,-150%);
+            text-shadow:0 0 6px black, 1px 1px 3px black;
+        }
+        small.note { color:#94a3b8; font-size:0.85rem; display:block; margin-top:4px; }
+        table { width:100%; border-collapse:collapse; margin-top:16px; cursor:pointer; }
+        th, td { padding:10px; border:1px solid #334155; text-align:left; }
+        th { background:#111827; }
+        tr:hover { background:#1e293b; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Game Content Editor</h1>
+
+    <div class="tabs">
+        <button class="tab-button active" data-tab="builder">Map / Page Builder</button>
+        <button class="tab-button" data-tab="maps">Maps</button>
+        <button class="tab-button" data-tab="entities">Entities List</button>
+        <button class="tab-button" data-tab="preview">Preview & Export</button>
+    </div>
+
+    <!-- Map / Page Builder Tab (formerly Hotspots) -->
+    <div id="builder" class="tab-content active">
+        <div class="controls">
+            <div class="input-group">
+                <label for="mapSelect">Map / Room</label>
+                <select id="mapSelect"><option value="">— select map —</option></select>
+            </div>
+            <div class="input-group">
+                <label for="nameInput">Name</label>
+                <input type="text" id="nameInput" placeholder="e.g. Twinkling Pearl, Old Hermit">
+            </div>
+            <div class="input-group">
+                <label for="descInput">Description / Dialog</label>
+                <textarea id="descInput" placeholder="What happens when tapped..."></textarea>
+            </div>
+            <div class="input-group">
+                <label for="typeSelect">Type (defines folder & behavior)</label>
+                <select id="typeSelect">
+                    <option value="">— select type —</option>
+                    <option value="Marker">Marker / Sign</option>
+                    <option value="Npc">Npc</option>
+                    <option value="Pickup">Pickup / Collectable</option>
+                    <option value="Object">Object / Interactable</option>
+                    <option value="Zoomto">Zoom To (point transition)</option>
+                    <option value="Map">Map (full transition)</option>
+                </select>
+            </div>
+            <div class="input-group" id="targetGroup" style="display:none;">
+                <label for="targetInput">Target Map/Image</label>
+                <input type="text" id="targetInput" placeholder="e.g. cellar.jpg or cellar">
+            </div>
+            <div class="input-group">
+                <label for="imageInput">Upload Image (local preview)</label>
+                <input type="file" id="imageInput" accept="image/*">
+            </div>
+            <div class="input-group">
+                <label for="filenameInput">GitHub Filename (auto-suggested)</label>
+                <input type="text" id="filenameInput" placeholder="e.g. collectables/pearl.png" required>
+                <small class="note">Must match repo path: images/[this-value]. Upload to correct subfolder later.</small>
+            </div>
+            <button id="clearBtn" class="btn-secondary" disabled>Clear Placement</button>
+            <button id="saveBtn" class="btn-primary" disabled>Save Entity</button>
+        </div>
+
+        <div id="status">Load a map and image to start placing entities</div>
+        <div class="canvas-wrapper"><canvas id="canvas"></canvas></div>
+        <pre id="result">Save result will appear here...</pre>
+    </div>
+
+    <!-- Maps Tab -->
+    <div id="maps" class="tab-content">
+        <h2>Create New Map</h2>
+        <div class="controls">
+            <div class="input-group">
+                <label for="mapName">Map Name</label>
+                <input type="text" id="mapName" placeholder="e.g. Forest Clearing">
+            </div>
+            <div class="input-group">
+                <label for="mapBackground">Background Filename</label>
+                <input type="text" id="mapBackground" placeholder="e.g. backgrounds/forest.jpg">
+                <small class="note">Must exist in repo /images/backgrounds/</small>
+            </div>
+            <div class="input-group">
+                <label for="mapDesc">Description</label>
+                <textarea id="mapDesc" placeholder="Optional notes..."></textarea>
+            </div>
+            <button id="saveMapBtn" class="btn-primary">Save Map</button>
+        </div>
+        <h3>Existing Maps</h3>
+        <table id="mapsTable">
+            <thead><tr><th>MapID</th><th>Name</th><th>Background</th><th>Description</th></tr></thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <!-- Entities List Tab (view only for now) -->
+    <div id="entities" class="tab-content">
+        <h2>Existing Entities</h2>
+        <table id="entitiesTable">
+            <thead>
+                <tr>
+                    <th>ID</th><th>MapID</th><th>Type</th><th>Name</th><th>Filename</th><th>Description</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <!-- Preview & Export Tab (placeholder) -->
+    <div id="preview" class="tab-content">
+        <h2>Preview & Export</h2>
+        <p>Coming soon – full map preview with placed entities</p>
+        <button class="btn-primary" disabled>Export JSON</button>
+        <button class="btn-secondary" id="pushRepoBtn">Push New Files to Repo (Manual Step)</button>
+        <p class="note" style="color:#ef4444;">Note: Automatic push from browser is insecure without backend. Use GitHub Desktop / CLI / web upload for now.</p>
+    </div>
+</div>
+
+<script>
+// ────────────────────────────────────────────────
+// CONFIG
+// ────────────────────────────────────────────────
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz187kpP3gtvzMtVsMq4COdMp2LR87SifTT-AnMIr-KGnsjNCxnWEP1kshSWVdz7ndE/exec";
+const ASSET_BASE = window.location.hostname.includes('github.io') 
+    ? 'images/' 
+    : 'https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/images/';  // ← CHANGE THIS
+
+const typeToFolder = {
+    'Pickup': 'collectables',
+    'Npc': 'npcs',
+    'Object': 'objects',
+    'Marker': 'markers',
+    'Zoomto': 'transitions',
+    'Map': 'transitions'
+};
+
+// ────────────────────────────────────────────────
+// SHARED – Canvas Setup
+// ────────────────────────────────────────────────
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let img = new Image();
+let placedPoint = null; // {x,y} for single point entity
+let points = []; // fallback if we ever re-add polygons
+
+function fitCanvasToImage() {
+    if (!img.src || img.naturalWidth <= 0) return;
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    redraw();
+}
+
+function redraw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (img.src) ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    
+    // Draw placed point
+    if (placedPoint) {
+        ctx.fillStyle = '#fbbf24';
+        ctx.beginPath();
+        ctx.arc(placedPoint.x, placedPoint.y, 8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+    }
+}
+
+canvas.addEventListener('click', e => {
+    if (!img.src) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = Math.round(e.clientX - rect.left);
+    const y = Math.round(e.clientY - rect.top);
+    placedPoint = { x: Math.max(0, Math.min(x, canvas.width)), y: Math.max(0, Math.min(y, canvas.height)) };
+    redraw();
+    updateUI();
+});
+
+// ────────────────────────────────────────────────
+// BUILDER TAB LOGIC
+// ────────────────────────────────────────────────
+const typeSelect = document.getElementById('typeSelect');
+const targetGroup = document.getElementById('targetGroup');
+const imageInput = document.getElementById('imageInput');
+const filenameInput = document.getElementById('filenameInput');
+const nameInput = document.getElementById('nameInput');
+const descInput = document.getElementById('descInput');
+const targetInput = document.getElementById('targetInput');
+const saveBtn = document.getElementById('saveBtn');
+const clearBtn = document.getElementById('clearBtn');
+const statusEl = document.getElementById('status');
+
+typeSelect.addEventListener('change', () => {
+    const typ = typeSelect.value;
+    targetGroup.style.display = (typ === 'Zoomto' || typ === 'Map') ? 'block' : 'none';
+    if (typ in typeToFolder) {
+        const suggested = typeToFolder[typ] + '/';
+        if (!filenameInput.value.startsWith(suggested)) {
+            filenameInput.value = suggested + (filenameInput.value.split('/').pop() || '');
+        }
+    }
+    updateUI();
+});
+
+imageInput.addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+        img.src = ev.target.result;
+        img.onload = () => {
+            fitCanvasToImage();
+            placedPoint = null;
+            redraw();
+            // Suggest filename from upload
+            const folder = typeSelect.value in typeToFolder ? typeToFolder[typeSelect.value] + '/' : '';
+            filenameInput.value = folder + file.name;
+            updateUI();
+        };
+    };
+    reader.readAsDataURL(file);
+});
+
+function updateUI() {
+    const hasMap = !!document.getElementById('mapSelect').value;
+    const hasType = !!typeSelect.value;
+    const hasName = nameInput.value.trim().length > 0;
+    const hasPoint = !!placedPoint;
+    saveBtn.disabled = !(hasMap && hasType && hasName && hasPoint);
+    clearBtn.disabled = !hasPoint;
+    statusEl.textContent = hasPoint ? `Entity placed at (${placedPoint.x}, ${placedPoint.y})` : 'Click canvas to place entity';
+}
+
+clearBtn.addEventListener('click', () => {
+    placedPoint = null;
+    redraw();
+    updateUI();
+});
+
+saveBtn.addEventListener('click', async () => {
+    const mapId = document.getElementById('mapSelect').value;
+    const typ = typeSelect.value;
+    if (!mapId || !typ) return;
+
+    const formData = new FormData();
+    formData.append("sheet", "Entities");
+    formData.append("mapId", mapId);
+    formData.append("type", typ);
+    formData.append("name", nameInput.value.trim());
+    formData.append("description", descInput.value.trim());
+    formData.append("filename", filenameInput.value.trim());
+    formData.append("positionX", placedPoint.x);
+    formData.append("positionY", placedPoint.y);
+    if (typ === 'Zoomto' || typ === 'Map') {
+        formData.append("target", targetInput.value.trim());
+    }
+
+    statusEl.textContent = "Saving entity...";
+
+    try {
+        await fetch(SCRIPT_URL, { method: 'POST', body: formData, mode: 'no-cors' });
+        statusEl.textContent = `Saved ${typ} "${nameInput.value}" at (${placedPoint.x},${placedPoint.y})`;
+        // Reset form
+        nameInput.value = descInput.value = targetInput.value = '';
+        placedPoint = null;
+        redraw();
+    } catch (err) {
+        statusEl.textContent = "Save failed – check console";
+        console.error(err);
+    }
+});
+
+// ────────────────────────────────────────────────
+// MAPS & ENTITIES LOADING (unchanged basics + filename preview)
+// ────────────────────────────────────────────────
+// ... (add loadMaps(), loadMapsIntoDropdown(), saveMap(), loadEntities() from your original code)
+// For brevity, assume you copy them here and add filename preview where needed
+
+// Example: in loadEntityForEdit or list, show preview
+// previewImg.src = ASSET_BASE + entity.filename;
+
+// ────────────────────────────────────────────────
+// PUSH BUTTON (placeholder)
+// ────────────────────────────────────────────────
+document.getElementById('pushRepoBtn').addEventListener('click', () => {
+    alert("Automatic push from browser requires GitHub Personal Access Token (insecure here).\n\nRecommended:\n1. Use GitHub web → Add file / Upload files\n2. Or GitHub Desktop / CLI: git add images/* && git commit -m 'Add assets' && git push");
+});
+
+// ────────────────────────────────────────────────
+// TAB SWITCHING + INIT
+// ────────────────────────────────────────────────
+document.querySelectorAll('.tab-button').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+        document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+        const tabId = btn.dataset.tab;
+        document.getElementById(tabId).style.display = 'block';
+        btn.classList.add('active');
+        // Load data on tab open
+        if (tabId === 'maps') loadMaps();
+        if (tabId === 'builder') loadMapsIntoDropdown();
+        if (tabId === 'entities') loadEntities();
+    });
+});
+
+// Init
+window.addEventListener('load', () => {
+    loadEntities(); // or whichever you want first
+});
+</script>
+</body>
+</html>        label { margin-bottom: 6px; font-weight: 500; color: #cbd5e1; }
         input, textarea, select {
             padding: 10px 12px;
             border-radius: 8px;
