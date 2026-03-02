@@ -1,3 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Game Content Editor – Map Builder</title>
+    <style>
+        :root {
+            --bg: #0f0f17;
+            --surface: #1e293b;
+            --text: #e0e0ff;
+            --text-muted: #94a3b8;
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --accent: #fbbf24;
+            --success: #22c55e;
+            --danger: #ef4444;
+        }
+        body { margin:0; font-family:system-ui,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; padding:24px; }
+        .container { max-width:1200px; margin:0 auto; }
+        h1 { margin:0 0 16px; color:#a5b4fc; text-align:center; }
+        .tabs { display:flex; border-bottom:1px solid #334155; margin-bottom:24px; overflow-x:auto; padding-bottom:4px; }
+        .tab-button { padding:12px 28px; background:transparent; border:none; color:var(--text-muted); font-size:1.05rem; cursor:pointer; white-space:nowrap; transition:all 0.15s; }
+        .tab-button:hover { color:var(--text); }
+        .tab-button.active { color:#a5b4fc; border-bottom:3px solid var(--primary); font-weight:600; }
+        .tab-content { display:none; }
+        .tab-content.active { display:block; }
+        .controls { display:flex; flex-wrap:wrap; gap:16px; margin-bottom:20px; }
+        .input-group { display:flex; flex-direction:column; min-width:220px; flex:1; }
+        label { margin-bottom:6px; font-weight:500; color:#cbd5e1; }
+        input, textarea, select {
+            padding:10px 12px; border-radius:8px; border:1px solid #4b5563; background:#111827; color:var(--text); font-size:1rem;
+        }
+        textarea { min-height:90px; resize:vertical; }
+        button {
+            padding:10px 20px; border:none; border-radius:8px; font-size:1rem; font-weight:500; cursor:pointer; transition:all 0.15s; height:40px;
+        }
+        .btn-primary { background:var(--primary); color:white; }
+        .btn-primary:hover:not(:disabled) { background:var(--primary-dark); }
+        .btn-secondary { background:#475569; color:white; }
+        .btn-secondary:hover:not(:disabled) { background:#334155; }
+        .btn-clear { background:var(--danger); color:white; }
+        .btn-clear:hover:not(:disabled) { background:#dc2626; }
+        button:disabled { opacity:0.5; cursor:not-allowed; }
+        #status, #entityStatus { padding:12px 16px; border-radius:8px; background:#111827; border:1px solid #334155; font-family:monospace; min-height:1.4em; }
+        .canvas-wrapper { position:relative; background:#0f172a; border-radius:12px; overflow:hidden; border:1px solid #334155; margin:16px 0; max-width:100%; overflow-x:auto; height:500px; }
+        canvas { display:block; touch-action:none; image-rendering:pixelated; width:100%; height:100%; }
+        .point-label { position:absolute; color:#fbbf24; font-size:11px; font-weight:bold; pointer-events:none; transform:translate(-50%,-150%); text-shadow:0 0 6px black, 1px 1px 3px black; }
+        small.note { color:#94a3b8; font-size:0.85rem; display:block; margin-top:4px; }
+        table { width:100%; border-collapse:collapse; margin-top:16px; }
+        th, td { padding:10px; border:1px solid #334155; text-align:left; }
+        th { background:#111827; }
+        tr:hover { background:#1e293b; }
+        #entPreviewCanvas { background:#1e293b; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Game Content Editor</h1>
+
+    <div class="tabs">
+        <button class="tab-button active" data-tab="builder">Map / Page Builder</button>
+        <button class="tab-button" data-tab="maps">Maps</button>
+        <button class="tab-button" data-tab="entities">Entities</button>
+        <button class="tab-button" data-tab="preview">Preview & Export</button>
+    </div>
+
+    <!-- Map / Page Builder -->
+    <div id="builder" class="tab-content active">
+        <div class="controls">
+            <div class="input-group">
+                <label for="mapSelect">Map / Room</label>
+                <select id="mapSelect"><option value="">— select —</option></select>
+            </div>
+            <div class="input-group">
+                <label for="nameInput">Name</label>
+                <input type="text" id="nameInput" placeholder="e.g. Twinkling Pearl, Old Hermit">
+            </div>
+            <div class="input-group">
+                <label for="descInput">Description / Dialog</label>
+                <textarea id="descInput" placeholder="What happens..."></textarea>
+            </div>
+            <div class="input-group">
+                <label for="typeSelect">Type</label>
+                <select id="typeSelect">
+                    <option value="">— select type —</option>
+                    <option value="Marker">Marker / Sign</option>
+                    <option value="Npc">Npc</option>
+                    <option value="Pickup">Pickup / Collectable</option>
+                    <option value="Object">Object / Interactable</option>
+                    <option value="Zoomto">Zoom To (point)</option>
+                    <option value="Map">Map (full transition)</option>
+                </select>
+            </div>
+            <div class="input-group" id="targetGroup" style="display:none;">
+                <label for="targetInput">Target (image or map name)</label>
+                <input type="text" id="targetInput" placeholder="e.g. cellar.jpg">
+            </div>
+            <div class="input-group">
+                <label for="imageInput">Upload Image (preview only)</label>
+                <input type="file" id="imageInput" accept="image/*">
+            </div>
+            <div class="input-group">
+                <label for="filenameInput">GitHub Path (images/…)</label>
+                <input type="text" id="filenameInput" placeholder="collectables/pearl.png" required>
+                <small class="note">Exact path after /images/ in repo. Case sensitive.</small>
+            </div>
+            <button id="clearBtn" class="btn-secondary" disabled>Clear Placement</button>
+            <button id="saveBtn" class="btn-primary" disabled>Save Entity</button>
+        </div>
+
+        <div id="status">Select map and place entity on canvas</div>
+        <div class="canvas-wrapper"><canvas id="canvas"></canvas></div>
+    </div>
+
+    <!-- Maps Tab -->
+    <div id="maps" class="tab-content">
+        <h2>Create / Edit Map</h2>
+        <div class="controls">
+            <div class="input-group">
+                <label for="mapName">Map Name</label>
+                <input type="text" id="mapName" placeholder="e.g. Forest Clearing">
+            </div>
+            <div class="input-group">
+                <label for="mapBackground">Background Path</label>
+                <input type="text" id="mapBackground" placeholder="backgrounds/forest.jpg">
+                <small class="note">Path after /images/ in repo</small>
+            </div>
+            <div class="input-group">
+                <label for="mapDesc">Notes</label>
+                <textarea id="mapDesc"></textarea>
+            </div>
+            <button id="saveMapBtn" class="btn-primary">Save Map</button>
+        </div>
+        <h3>Existing Maps</h3>
+        <table id="mapsTable">
+            <thead><tr><th>ID</th><th>Name</th><th>Background</th><th>Notes</th></tr></thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <!-- Entities Tab -->
+    <div id="entities" class="tab-content">
+        <h2>Entities</h2>
+        <table id="entitiesTable">
+            <thead>
+                <tr>
+                    <th>ID</th><th>Map</th><th>Type</th><th>Name</th><th>Path</th><th>Pos</th><th>Preview</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+        <h3>Animation Preview (for selected / new)</h3>
+        <div class="controls">
+            <div class="input-group">
+                <label for="animSheetFile">Sprite Sheet (optional)</label>
+                <input type="file" id="animSheetFile" accept="image/*">
+            </div>
+            <div class="input-group">
+                <label for="animFilename">Filename in repo</label>
+                <input type="text" id="animFilename" placeholder="npcs/hermit-idle.png">
+            </div>
+            <div class="input-group">
+                <label for="frameW">Frame W</label>
+                <input type="number" id="frameW" value="64" min="1">
+            </div>
+            <div class="input-group">
+                <label for="frameH">Frame H</label>
+                <input type="number" id="frameH" value="64" min="1">
+            </div>
+            <div class="input-group">
+                <label for="framesPerAnim">Frames</label>
+                <input type="number" id="framesPerAnim" value="4" min="1">
+            </div>
+            <div class="input-group">
+                <label for="animFps">FPS</label>
+                <input type="number" id="animFps" value="10" min="1">
+            </div>
+        </div>
+        <div class="canvas-wrapper" style="height:240px; max-width:480px; margin:16px auto;">
+            <canvas id="entPreviewCanvas" width="480" height="240"></canvas>
+        </div>
+        <div id="entityStatus">Ready</div>
+    </div>
+
+    <!-- Preview & Export -->
+    <div id="preview" class="tab-content">
+        <h2>Preview & Export</h2>
+        <p>Full map preview coming soon</p>
+        <button class="btn-secondary" id="exportBtn">Export JSON (placeholder)</button>
+    </div>
+</div>
+
 <script>
 // ────────────────────────────────────────────────
 // CONFIG
@@ -6,7 +201,7 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz187kpP3gtvzMtVsMq4
 
 const ASSET_BASE = window.location.hostname.includes('github.io')
     ? 'images/'
-    : 'https://raw.githubusercontent.com/guerillagardeningkzn-design/Hawaii/main/images/';  // ← CHANGE THIS
+    : 'https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/images/';  // ← CHANGE THIS
 
 const MAP_BACKGROUND_PREFIX = 'backgrounds/';  // ← CHANGE THIS TO MATCH YOUR FILES
 // Options:
@@ -346,3 +541,6 @@ document.querySelectorAll('.tab-button').forEach(btn => {
 // Initial load
 loadMapsIntoDropdown();
 </script>
+</body>
+</html>
+
